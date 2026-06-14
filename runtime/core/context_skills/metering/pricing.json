@@ -1,0 +1,18 @@
+{
+  "_comment": "Operator-editable placeholder rates — NOT verified market prices. est_cost is illustrative only.",
+  "default_model": "gpt-4o-mini",
+  "models": {
+    "gpt-4o-mini": {
+      "input_per_1k_tokens_usd": 0.00015,
+      "output_per_1k_tokens_usd": 0.0006
+    },
+    "gpt-4o": {
+      "input_per_1k_tokens_usd": 0.0025,
+      "output_per_1k_tokens_usd": 0.01
+    },
+    "claude-sonnet": {
+      "input_per_1k_tokens_usd": 0.003,
+      "output_per_1k_tokens_usd": 0.015
+    }
+  }
+}

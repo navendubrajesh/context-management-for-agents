@@ -10,6 +10,10 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "jsonschema>=4.0.0",
+    "tiktoken>=0.7.0",
+    "pyyaml>=6.0.0",
+    "opentelemetry-api>=1.24.0",
+    "opentelemetry-sdk>=1.24.0",
 ]
 
 [project.optional-dependencies]

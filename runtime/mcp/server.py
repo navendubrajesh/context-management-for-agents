@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""MCP server exposing context-management-for-agents skills over stdio."""
+"""MCP server exposing context-management-for-agents skills and runtime primitives."""
 
 from __future__ import annotations
 
@@ -18,8 +18,25 @@ from mcp.server.stdio import stdio_server
 from mcp.types import Resource, TextContent, Tool
 
 from context_skills import get_reference, get_skill, list_skills, route
+from context_skills.primitives import (
+    budget_context,
+    compact_session,
+    mask_observation,
+    optimize_format,
+    run_context_pipeline,
+)
+from context_skills.primitives.budgeter import ContextComponent
+from context_skills.primitives.service import run_primitive
 
 server = Server("context-skills")
+
+_PRIMITIVE_TOOLS = {
+    "mask_observation",
+    "compact_session",
+    "budget_context",
+    "optimize_format",
+    "run_context_pipeline",
+}
 
 
 @server.list_tools()
@@ -66,6 +83,72 @@ async def list_tools() -> list[Tool]:
                 "additionalProperties": False,
             },
         ),
+        Tool(
+            name="mask_observation",
+            description="Mask a verbose tool/observation output with a compact summary.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "tool_name": {"type": "string"},
+                    "content": {},
+                    "query": {"type": "string"},
+                },
+                "required": ["tool_name", "content"],
+                "additionalProperties": False,
+            },
+        ),
+        Tool(
+            name="compact_session",
+            description="Compact conversation history (hierarchical, handoff_summary, selective_retention).",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "messages": {"type": "array"},
+                    "text": {"type": "string"},
+                    "mode": {
+                        "type": "string",
+                        "enum": ["hierarchical", "handoff_summary", "selective_retention"],
+                    },
+                },
+                "additionalProperties": False,
+            },
+        ),
+        Tool(
+            name="budget_context",
+            description="Fit context components under a token budget by priority.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "components": {"type": "array"},
+                    "token_budget": {"type": "integer"},
+                },
+                "required": ["components", "token_budget"],
+                "additionalProperties": False,
+            },
+        ),
+        Tool(
+            name="optimize_format",
+            description="Compact verbose JSON or text payloads.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "content": {},
+                    "kind": {"type": "string", "enum": ["json", "text", "auto"]},
+                },
+                "required": ["content"],
+                "additionalProperties": False,
+            },
+        ),
+        Tool(
+            name="run_context_pipeline",
+            description="Run the combined context optimization pipeline on a session payload.",
+            inputSchema={
+                "type": "object",
+                "properties": {"session": {"type": "object"}},
+                "required": ["session"],
+                "additionalProperties": False,
+            },
+        ),
     ]
 
 
@@ -85,6 +168,40 @@ async def call_tool(name: str, arguments: dict[str, Any] | None) -> list[TextCon
             "path": args["path"],
             "content": get_reference(args["name"], args["path"]),
         }
+    elif name == "mask_observation":
+        result = run_primitive(
+            mask_observation,
+            tool_name=args["tool_name"],
+            content=args["content"],
+            query=args.get("query"),
+        )
+        payload = {"output": result.output, "metrics": result.metrics.to_dict()}
+    elif name == "compact_session":
+        result = run_primitive(
+            compact_session,
+            messages=args.get("messages"),
+            text=args.get("text"),
+            mode=args.get("mode", "hierarchical"),
+        )
+        payload = {"output": result.output, "metrics": result.metrics.to_dict()}
+    elif name == "budget_context":
+        components = [ContextComponent(**item) for item in args["components"]]
+        result = run_primitive(
+            budget_context,
+            components=components,
+            token_budget=args["token_budget"],
+        )
+        payload = {"output": result.output, "metrics": result.metrics.to_dict()}
+    elif name == "optimize_format":
+        result = run_primitive(
+            optimize_format,
+            content=args["content"],
+            kind=args.get("kind", "auto"),
+        )
+        payload = {"output": result.output, "metrics": result.metrics.to_dict()}
+    elif name == "run_context_pipeline":
+        result = run_primitive(run_context_pipeline, args["session"])
+        payload = {"output": result.output, "metrics": result.metrics.to_dict()}
     else:
         raise ValueError(f"Unknown tool: {name}")
 

@@ -249,4 +249,90 @@ export class SkillsClient {
     }
     return fs.readFileSync(resolved, "utf8");
   }
+
+  private async postPrimitive(path: string, body: Record<string, unknown>): Promise<{
+    output: string;
+    metrics: Record<string, unknown>;
+    correlation_id?: string;
+  }> {
+    if (!this.baseUrl) {
+      throw new Error(`${path} requires remote baseUrl — primitives run in Python runtime`);
+    }
+    const response = await fetch(`${this.baseUrl}${path}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) throw new Error(`${path} failed: ${response.status}`);
+    return response.json() as Promise<{
+      output: string;
+      metrics: Record<string, unknown>;
+      correlation_id?: string;
+    }>;
+  }
+
+  async maskObservation(args: {
+    toolName: string;
+    content: string | Record<string, unknown>;
+    query?: string;
+  }): Promise<{ output: string; metrics: Record<string, unknown> }> {
+    const payload = await this.postPrimitive("/primitives/mask_observation", {
+      tool_name: args.toolName,
+      content: args.content,
+      query: args.query,
+    });
+    return { output: payload.output, metrics: payload.metrics };
+  }
+
+  async compactSession(args: {
+    messages?: Array<Record<string, unknown>>;
+    text?: string;
+    mode?: "hierarchical" | "handoff_summary" | "selective_retention";
+  }): Promise<{ output: string; metrics: Record<string, unknown> }> {
+    const payload = await this.postPrimitive("/primitives/compact_session", {
+      messages: args.messages,
+      text: args.text,
+      mode: args.mode,
+    });
+    return { output: payload.output, metrics: payload.metrics };
+  }
+
+  async budgetContext(args: {
+    components: Array<{ name: string; content: string; priority?: number }>;
+    tokenBudget: number;
+  }): Promise<{ output: string; metrics: Record<string, unknown> }> {
+    const payload = await this.postPrimitive("/primitives/budget_context", {
+      components: args.components,
+      token_budget: args.tokenBudget,
+    });
+    return { output: payload.output, metrics: payload.metrics };
+  }
+
+  async optimizeFormat(args: {
+    content: string | Record<string, unknown> | unknown[];
+    kind?: "json" | "text" | "auto";
+  }): Promise<{ output: string; metrics: Record<string, unknown> }> {
+    const payload = await this.postPrimitive("/primitives/optimize_format", {
+      content: args.content,
+      kind: args.kind,
+    });
+    return { output: payload.output, metrics: payload.metrics };
+  }
+
+  async runContextPipeline(session: Record<string, unknown>): Promise<{
+    output: string;
+    metrics: Record<string, unknown>;
+  }> {
+    const payload = await this.postPrimitive("/primitives/run_context_pipeline", { session });
+    return { output: payload.output, metrics: payload.metrics };
+  }
+
+  async getUsage(limit = 50): Promise<{ records: Array<Record<string, unknown>> }> {
+    if (!this.baseUrl) {
+      throw new Error("getUsage requires remote baseUrl");
+    }
+    const response = await fetch(`${this.baseUrl}/usage?limit=${limit}`);
+    if (!response.ok) throw new Error(`getUsage failed: ${response.status}`);
+    return response.json() as Promise<{ records: Array<Record<string, unknown>> }>;
+  }
 }
