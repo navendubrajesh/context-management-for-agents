@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Context Skills Control Plane</title>
+  <link rel="stylesheet" href="/console/styles.css" />
+</head>
+<body>
+  <header>
+    <h1>Context Skills Console</h1>
+    <p>Thin control-plane UI over REST APIs — auth via SSO (Bearer token).</p>
+  </header>
+  <nav>
+    <button data-panel="catalog">Skill Catalog</button>
+    <button data-panel="usage">Usage &amp; Cost</button>
+    <button data-panel="audit">Audit Log</button>
+    <button data-panel="approvals">Approvals</button>
+    <button data-panel="tenants">Tenants</button>
+  </nav>
+  <section id="auth">
+    <label>Bearer token <input id="token" type="password" placeholder="Paste OIDC JWT" /></label>
+    <button id="save-token">Save</button>
+  </section>
+  <main id="panel-catalog" class="panel">
+    <h2>Skill Catalog</h2>
+    <button id="load-skills">Refresh</button>
+    <ul id="skill-list"></ul>
+  </main>
+  <main id="panel-usage" class="panel hidden">
+    <h2>Usage (estimated)</h2>
+    <button id="load-usage">Load chargeback</button>
+    <pre id="usage-out"></pre>
+  </main>
+  <main id="panel-audit" class="panel hidden">
+    <h2>Audit Events</h2>
+    <button id="load-audit">Load</button>
+    <pre id="audit-out"></pre>
+  </main>
+  <main id="panel-approvals" class="panel hidden">
+    <h2>Approval Queue</h2>
+    <button id="load-approvals">Load pending</button>
+    <ul id="approval-list"></ul>
+  </main>
+  <main id="panel-tenants" class="panel hidden">
+    <h2>Tenants</h2>
+    <button id="load-tenants">Load</button>
+    <pre id="tenants-out"></pre>
+  </main>
+  <script src="/console/app.js"></script>
+</body>
+</html>
