@@ -11,6 +11,7 @@ requires-python = ">=3.10"
 dependencies = [
     "context-skills-core",
     "context-iam",
+    "context-tenancy",
     "fastapi>=0.110.0",
     "uvicorn[standard]>=0.27.0",
 ]

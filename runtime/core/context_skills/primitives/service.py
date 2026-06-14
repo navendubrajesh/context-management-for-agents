@@ -6,6 +6,13 @@ import time
 from typing import Callable, TypeVar
 
 from context_skills.metering import UsageRecord, emit_usage, estimate_cost_usd
+
+try:
+    from context_tenancy.context import current_tenant_id
+except ImportError:
+
+    def current_tenant_id(default: str = "default") -> str:  # noqa: ARG001
+        return default
 from context_skills.primitives.metrics import PrimitiveMetrics, PrimitiveResult
 from context_skills.telemetry import record_primitive_metrics, trace_operation
 
@@ -19,6 +26,7 @@ def run_primitive(
     **kwargs,
 ) -> PrimitiveResult:
     operation = getattr(fn, "__name__", "primitive")
+    tenant_id = kwargs.pop("tenant_id", None) or current_tenant_id()
     start = time.perf_counter()
     with trace_operation(operation, correlation_id=correlation_id) as cid:
         result = fn(*args, **kwargs)
@@ -41,6 +49,7 @@ def run_primitive(
                 tokens_after=result.metrics.tokens_after,
                 est_cost_usd=est_cost,
                 correlation_id=cid,
+                tenant_id=tenant_id,
             )
         )
         record_primitive_metrics(

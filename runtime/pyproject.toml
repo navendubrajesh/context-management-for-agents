@@ -15,6 +15,7 @@ test = [
     "context-skills-api",
     "context-skills-sdk",
     "context-iam",
+    "context-tenancy",
     "pytest>=7.0.0",
     "httpx>=0.27.0",
     "fastapi>=0.110.0",
@@ -28,4 +29,4 @@ test = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["core", "api", "sdk-python", "../control-plane/iam"]
+pythonpath = ["core", "api", "sdk-python", "../control-plane/iam", "../control-plane/tenancy"]

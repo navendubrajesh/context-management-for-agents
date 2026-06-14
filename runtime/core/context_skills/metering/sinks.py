@@ -26,9 +26,12 @@ class InMemoryUsageSink:
             if len(self._records) > self.max_records:
                 self._records = self._records[-self.max_records :]
 
-    def recent(self, limit: int = 50) -> list[dict]:
+    def recent(self, limit: int = 50, tenant_id: str | None = None) -> list[dict]:
         with self._lock:
-            items = self._records[-limit:]
+            items = self._records[-self.max_records :]
+        if tenant_id is not None:
+            items = [r for r in items if r.tenant_id == tenant_id]
+        items = items[-limit:]
         return [item.to_dict() for item in reversed(items)]
 
     def clear(self) -> None:

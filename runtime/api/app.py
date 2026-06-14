@@ -13,9 +13,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from scim_routes import router as scim_router
+from tenant_routes import router as tenant_router
 
 from context_iam.auth import authenticate_request, is_auth_enforced
 from context_iam.identity import Principal
+from context_tenancy.context import set_tenant_id
+from context_tenancy.store import get_tenant_store
 from context_skills import get_reference, get_skill, list_skills, route
 from context_skills.metering import emit_usage, get_usage_sink, new_correlation_id
 from context_skills.metering.usage import UsageRecord
@@ -45,6 +48,7 @@ app.add_middleware(
 )
 
 app.include_router(scim_router)
+app.include_router(tenant_router)
 
 
 class RouteRequest(BaseModel):
@@ -123,7 +127,8 @@ async def auth_middleware(request: Request, call_next):  # noqa: ANN001
             request.state.tenant_id = request.state.principal.tenant_id
         except HTTPException:
             request.state.principal = None
-            request.state.tenant_id = "default"
+            request.state.tenant_id = request.headers.get("x-tenant-id", "default")
+        set_tenant_id(request.state.tenant_id)
         return await call_next(request)
     try:
         principal = authenticate_request(
@@ -133,6 +138,7 @@ async def auth_middleware(request: Request, call_next):  # noqa: ANN001
         )
         request.state.principal = principal
         request.state.tenant_id = principal.tenant_id
+        set_tenant_id(principal.tenant_id)
     except PermissionError as exc:
         return JSONResponse(status_code=401, content={"detail": str(exc)})
     return await call_next(request)
@@ -167,7 +173,8 @@ def get_skills(
     request: Request,
     _: Principal = Depends(require_operation("skills:read")),
 ) -> list[dict[str, str]]:
-    return list_skills(_repo_root(request))
+    skills = list_skills(_repo_root(request))
+    return get_tenant_store().filter_skills(_tenant_id(request) or "default", skills)
 
 
 @app.get("/skills/{name}")
@@ -176,6 +183,10 @@ def get_skill_by_name(
     request: Request,
     _: Principal = Depends(require_operation("skills:read")),
 ) -> dict[str, Any]:
+    tenant_id = _tenant_id(request) or "default"
+    cfg = get_tenant_store().get(tenant_id)
+    if cfg and cfg.enabled_skills and name not in cfg.enabled_skills:
+        raise HTTPException(status_code=404, detail=f"Skill not available for tenant: {name}")
     try:
         return get_skill(name, _repo_root(request))
     except FileNotFoundError as exc:
@@ -241,6 +252,7 @@ def api_mask_observation(
         content=payload.content,
         query=payload.query,
         correlation_id=cid,
+        tenant_id=_tenant_id(request),
     )
     return _primitive_response(result, cid)
 
@@ -258,6 +270,7 @@ def api_compact_session(
         text=payload.text,
         mode=payload.mode,
         correlation_id=cid,
+        tenant_id=_tenant_id(request),
     )
     return _primitive_response(result, cid)
 
@@ -275,6 +288,7 @@ def api_budget_context(
         components=components,
         token_budget=payload.token_budget,
         correlation_id=cid,
+        tenant_id=_tenant_id(request),
     )
     return _primitive_response(result, cid)
 
@@ -291,6 +305,7 @@ def api_optimize_format(
         content=payload.content,
         kind=payload.kind,
         correlation_id=cid,
+        tenant_id=_tenant_id(request),
     )
     return _primitive_response(result, cid)
 
@@ -306,6 +321,7 @@ def api_run_context_pipeline(
         run_context_pipeline,
         payload.session,
         correlation_id=cid,
+        tenant_id=_tenant_id(request),
     )
     return _primitive_response(result, cid)
 
@@ -317,9 +333,10 @@ def get_usage(
     _: Principal = Depends(require_operation("usage:read")),
 ) -> dict[str, Any]:
     tenant_id = _tenant_id(request)
-    records = get_usage_sink().recent(limit=limit)
-    if tenant_id and is_auth_enforced():
-        records = [r for r in records if r.get("tenant_id") == tenant_id]
+    if is_auth_enforced() and tenant_id:
+        records = get_usage_sink().recent(limit=limit, tenant_id=tenant_id)
+    else:
+        records = get_usage_sink().recent(limit=limit)
     return {"records": records}
 
 
