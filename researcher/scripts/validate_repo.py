@@ -11,6 +11,14 @@ import sys
 import json
 import argparse
 
+# Import shared manifest validator from runtime/core.
+SCRIPT_DIR = os.path.dirname(__file__)
+RUNTIME_CORE = os.path.abspath(os.path.join(SCRIPT_DIR, "..", "..", "runtime", "core"))
+if RUNTIME_CORE not in sys.path:
+    sys.path.insert(0, RUNTIME_CORE)
+
+from context_skills.manifest import validate_all_skill_manifests  # noqa: E402
+
 # List of expected core files
 CORE_FILES = [
     "README.md",
@@ -239,6 +247,15 @@ def validate_registries(base_dir):
 
     log_info("Registry validation passed.")
 
+def validate_skill_manifests(base_dir):
+    log_info("Validating runtime skill manifests against skill-manifest.schema.json...")
+    errors = validate_all_skill_manifests(base_dir)
+    if errors:
+        for error in errors:
+            log_error(f"Skill manifest validation failed: {error}")
+    else:
+        log_info("Skill manifest validation passed.")
+
 def main():
     parser = argparse.ArgumentParser(description="Validate repository structure and content maps.")
     parser.add_argument("--strict", action="store_true", help="Fail and exit with code 1 on errors.")
@@ -251,6 +268,7 @@ def main():
         validate_structure(base_dir)
         validate_manifests(base_dir)
         validate_registries(base_dir)
+        validate_skill_manifests(base_dir)
         log_info("All validation gates passed successfully.")
     except Exception as e:
         log_error(f"An unexpected error occurred during validation: {e}", strict=args.strict)

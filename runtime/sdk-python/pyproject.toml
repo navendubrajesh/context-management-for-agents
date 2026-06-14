@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61.0.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "context-skills-sdk"
+version = "1.0.0"
+description = "Python SDK for context-management-for-agents runtime (local + REST)."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "context-skills-core",
+    "httpx>=0.27.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["context_skills_sdk*"]

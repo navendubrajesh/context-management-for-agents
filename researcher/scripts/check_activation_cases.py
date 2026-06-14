@@ -10,129 +10,36 @@ and do NOT trigger inappropriate adjacent skills.
 import os
 import sys
 import json
-import re
 
-# Expected 28 skills (13 platform-agnostic + 15 platform-specific)
-EXPECTED_SKILLS = {
-    "advanced-evaluation",
-    "amazonq-context-architecture",
-    "amazonq-customization",
-    "amazonq-session-management",
-    "antigravity-context-architecture",
-    "antigravity-customization",
-    "antigravity-session-management",
-    "context-compression",
-    "context-degradation",
-    "context-fundamentals",
-    "context-optimization",
-    "copilot-context-architecture",
-    "copilot-customization",
-    "copilot-session-management",
-    "cursor-context-architecture",
-    "cursor-customization",
-    "cursor-session-management",
-    "evaluation",
-    "filesystem-context",
-    "harness-engineering",
-    "hosted-agents",
-    "kiro-context-architecture",
-    "kiro-customization",
-    "kiro-session-management",
-    "memory-systems",
-    "multi-agent-patterns",
-    "project-development",
-    "tool-design",
-}
+# Import shared router from runtime/core (single implementation).
+SCRIPT_DIR = os.path.dirname(__file__)
+RUNTIME_CORE = os.path.abspath(os.path.join(SCRIPT_DIR, "..", "..", "runtime", "core"))
+if RUNTIME_CORE not in sys.path:
+    sys.path.insert(0, RUNTIME_CORE)
+
+from context_skills.constants import EXPECTED_SKILLS  # noqa: E402
+from context_skills.paths import find_repo_root  # noqa: E402
+from context_skills.router import load_router_index, score_skill_match  # noqa: E402
+
 
 def log_error(msg):
     print(f"[-] ERROR: {msg}", file=sys.stderr)
 
+
 def log_info(msg):
     print(f"[+] INFO: {msg}")
 
-def get_words(text):
-    return set(re.findall(r"\b[a-z0-9-]{3,}\b", text.lower()))
-
-def load_skills_data(base_dir):
-    skills_data = {}
-    skills_dir = os.path.join(base_dir, "skills")
-    
-    for s_name in EXPECTED_SKILLS:
-        skill_file = os.path.join(skills_dir, s_name, "SKILL.md")
-        if not os.path.exists(skill_file):
-            continue
-        
-        with open(skill_file, "r", encoding="utf-8") as f:
-            content = f.read()
-
-        # Extract description from frontmatter
-        description = ""
-        match = re.match(r"^---\s*\n(.*?)\n---", content, re.DOTALL | re.MULTILINE)
-        if match:
-            fm_text = match.group(1)
-            for line in fm_text.splitlines():
-                if line.startswith("description:"):
-                    description = line.split(":", 1)[1].strip()
-
-        skills_data[s_name] = {
-            "name": s_name,
-            "description": description,
-            "content": content,
-            "name_words": get_words(s_name.replace("-", " ")),
-            "desc_words": get_words(description),
-            "content_words": get_words(content)
-        }
-    return skills_data
-
-def score_skill_match(query, skill_data):
-    query_words = get_words(query)
-    if not query_words:
-        return 0.0
-
-    # Weights
-    name_weight = 5.0
-    desc_weight = 2.0
-    content_weight = 0.5
-
-    # Check matches
-    name_matches = query_words.intersection(skill_data["name_words"])
-    desc_matches = query_words.intersection(skill_data["desc_words"])
-    content_matches = query_words.intersection(skill_data["content_words"])
-
-    score = (len(name_matches) * name_weight +
-             len(desc_matches) * desc_weight +
-             len(content_matches) * content_weight)
-
-    # Context degradation vs fundamentals disambiguation heuristics
-    # Fundamentals query keywords: conceptual explanation, anatomy, attention curves, sink, etc.
-    # Degradation keywords: prevent, lost-in-middle, poisoning, distraction, failure, bug, clash.
-    if skill_data["name"] == "context-fundamentals":
-        if any(w in query_words for w in ["prevent", "failure", "poisoning", "distraction", "clash", "degrade", "degradation"]):
-            score *= 0.5
-    elif skill_data["name"] == "context-degradation":
-        if any(w in query_words for w in ["prevent", "failure", "poisoning", "distraction", "clash", "degrade", "degradation"]):
-            score *= 2.0
-
-    # Compression vs Optimization heuristics
-    if skill_data["name"] == "context-optimization":
-        if any(w in query_words for w in ["compress", "history", "handoff", "summarize"]):
-            score *= 0.5
-    elif skill_data["name"] == "context-compression":
-        if any(w in query_words for w in ["compress", "history", "handoff", "summarize"]):
-            score *= 2.0
-
-    return score
 
 def main():
-    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    base_dir = find_repo_root(os.path.join(SCRIPT_DIR, "..", ".."))
     ac_file = os.path.join(base_dir, "researcher", "benchmarks", "activation-cases.jsonl")
 
     if not os.path.exists(ac_file):
         log_error(f"Missing activation cases file: {ac_file}")
         sys.exit(1)
 
-    skills_data = load_skills_data(base_dir)
-    
+    skills_data = load_router_index(base_dir)
+
     passed_cases = 0
     total_cases = 0
     failed = False
@@ -142,7 +49,7 @@ def main():
             line = line.strip()
             if not line:
                 continue
-            
+
             try:
                 case = json.loads(line)
             except Exception as e:
@@ -158,27 +65,34 @@ def main():
             rationale = case.get("rationale", "")
 
             if expected not in skills_data or not_expected not in skills_data:
-                log_error(f"Case {case_id}: expected/not_expected skills invalid ({expected} / {not_expected})")
+                log_error(
+                    f"Case {case_id}: expected/not_expected skills invalid ({expected} / {not_expected})"
+                )
                 failed = True
                 continue
 
             expected_score = score_skill_match(query, skills_data[expected])
             not_expected_score = score_skill_match(query, skills_data[not_expected])
 
-            # Also find the highest scoring skill overall
-            scores = {s_name: score_skill_match(query, s_data) for s_name, s_data in skills_data.items()}
+            scores = {
+                s_name: score_skill_match(query, s_data) for s_name, s_data in skills_data.items()
+            }
             best_skill = max(scores, key=scores.get)
 
-            # To pass: expected_score > not_expected_score and expected_score > 0
             if expected_score > not_expected_score and expected_score > 0:
-                log_info(f"Case {case_id} [{query}]: PASSED (Expected: {expected} ({expected_score:.1f}) > Not Expected: {not_expected} ({not_expected_score:.1f}). Best overall: {best_skill})")
+                log_info(
+                    f"Case {case_id} [{query}]: PASSED (Expected: {expected} ({expected_score:.1f}) > "
+                    f"Not Expected: {not_expected} ({not_expected_score:.1f}). Best overall: {best_skill})"
+                )
                 passed_cases += 1
             else:
-                log_error(f"Case {case_id} [{query}]: FAILED\n"
-                          f"  Expected: '{expected}' score {expected_score:.1f}\n"
-                          f"  Not Expected: '{not_expected}' score {not_expected_score:.1f}\n"
-                          f"  Rationale: {rationale}\n"
-                          f"  Best overall was: '{best_skill}' with score {scores[best_skill]:.1f}")
+                log_error(
+                    f"Case {case_id} [{query}]: FAILED\n"
+                    f"  Expected: '{expected}' score {expected_score:.1f}\n"
+                    f"  Not Expected: '{not_expected}' score {not_expected_score:.1f}\n"
+                    f"  Rationale: {rationale}\n"
+                    f"  Best overall was: '{best_skill}' with score {scores[best_skill]:.1f}"
+                )
                 failed = True
 
     print(f"\n[+] Activation cases check summary: {passed_cases}/{total_cases} passed.")
@@ -186,6 +100,7 @@ def main():
         sys.exit(1)
     else:
         sys.exit(0)
+
 
 if __name__ == "__main__":
     main()

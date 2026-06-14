@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "context-skills": {
+      "command": "python",
+      "args": ["-m", "server"],
+      "cwd": "runtime/mcp",
+      "env": {
+        "PYTHONPATH": "runtime/core"
+      }
+    }
+  }
+}

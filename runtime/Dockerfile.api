@@ -1,0 +1,14 @@
+FROM python:3.12-slim
+
+WORKDIR /app
+
+COPY runtime/core /app/runtime/core
+COPY runtime/api /app/runtime/api
+COPY skills /app/skills
+COPY researcher /app/researcher
+
+RUN pip install --no-cache-dir -e /app/runtime/core -e /app/runtime/api
+
+EXPOSE 8080
+
+CMD ["uvicorn", "app:app", "--app-dir", "/app/runtime/api", "--host", "0.0.0.0", "--port", "8080"]

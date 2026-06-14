@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61.0.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "context-skills-mcp"
+version = "1.0.0"
+description = "MCP server for context-management-for-agents runtime."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "context-skills-core",
+    "mcp>=1.0.0",
+]
+
+[project.scripts]
+context-skills-mcp = "server:main"
+
+[tool.setuptools]
+py-modules = ["server"]

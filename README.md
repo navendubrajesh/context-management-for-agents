@@ -14,6 +14,7 @@
 - [Platform Skills](#platform-skills)
 - [Foundational & Architectural Skills](#foundational--architectural-skills)
 - [Installation](#installation)
+- [Use it as an Agent](#use-it-as-an-agent)
 - [Skill Activation & Use Cases](#skill-activation--use-cases)
 - [Validation Gates](#validation-gates)
 - [Context Window Savings (Measured)](#context-window-savings-measured)
@@ -144,6 +145,75 @@ npx context-management-for-agents --path ./my-skills-folder
 ```bash
 git clone https://github.com/navendubrajesh/context-management-for-agents.git
 ```
+
+## Use it as an Agent
+
+Phase 1 runtime under `runtime/` exposes the same 28 skills to orchestrators, coding agents, and custom apps — without copying skill content.
+
+### MCP (Cursor, Copilot, Claude)
+
+Register the stdio MCP server in `.cursor/mcp.json` (adjust absolute paths):
+
+```json
+{
+  "mcpServers": {
+    "context-skills": {
+      "command": "python",
+      "args": ["server.py"],
+      "cwd": "/path/to/context-management-for-agents/runtime/mcp",
+      "env": {
+        "PYTHONPATH": "/path/to/context-management-for-agents/runtime/core"
+      }
+    }
+  }
+}
+```
+
+Tools: `list_skills`, `get_skill`, `route_task`, `get_reference`. Each skill is also a resource at `skill://<name>`.
+
+```bash
+pip install -e runtime/core -e runtime/mcp
+python runtime/mcp/server.py
+python runtime/mcp/smoke_test.py
+```
+
+See `runtime/mcp/mcp.json` for a starter config snippet.
+
+### REST API
+
+```bash
+pip install -e runtime/core -e runtime/api
+uvicorn app:app --app-dir runtime/api --host 0.0.0.0 --port 8080
+
+# Or containerized
+docker compose -f runtime/docker-compose.yml up --build
+```
+
+```bash
+curl http://localhost:8080/skills
+curl -X POST http://localhost:8080/route \
+  -H "Content-Type: application/json" \
+  -d '{"task":"How do I compress conversation history for a handoff?","top_k":3}'
+```
+
+OpenAPI docs: `http://localhost:8080/docs`
+
+### Python SDK (LangGraph / CrewAI)
+
+```bash
+pip install -e runtime/core -e runtime/sdk-python
+```
+
+```python
+from context_skills_sdk import SkillsClient
+
+client = SkillsClient()
+matches = client.route("How do I compress conversation history for a handoff?", top_k=1)
+skill = client.get_skill(matches[0]["skill"])
+# Use skill["body"] as node context in LangGraph or agent backstory in CrewAI
+```
+
+More examples: `runtime/sdk-python/README.md`, TypeScript client: `runtime/sdk-ts/`.
 
 ## Skill Activation & Use Cases
 

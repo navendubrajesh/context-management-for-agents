@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://context-management-for-agents.dev/schemas/skill-manifest.schema.json",
+  "title": "Agent Skill Manifest",
+  "description": "Runtime manifest derived from skills/*/SKILL.md and researcher corpus metadata.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "name",
+    "description",
+    "version",
+    "category",
+    "references",
+    "claims",
+    "activation_triggers"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$",
+      "description": "Canonical skill identifier matching skills/<name>/SKILL.md frontmatter."
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Third-person routing description from SKILL.md frontmatter."
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Semantic version for the runtime manifest entry."
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "platform",
+        "foundational",
+        "architectural",
+        "operational",
+        "methodology",
+        "cognitive"
+      ],
+      "description": "Skill collection category used for filtering and routing."
+    },
+    "references": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "Relative reference paths under skills/<name>/references/."
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^claim-"
+      },
+      "description": "Claim identifiers linked via researcher/corpus/index.json."
+    },
+    "activation_triggers": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1,
+      "description": "Bullet triggers extracted from the When to Activate section."
+    }
+  }
+}
