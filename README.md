@@ -1,14 +1,57 @@
 # Context Management for Agents
 
+<!-- DEMO_GIF: replace with assets/demo.gif after recording (see below) -->
+
+[![CI](https://github.com/navendubrajesh/context-management-for-agents/actions/workflows/ci.yml/badge.svg)](https://github.com/navendubrajesh/context-management-for-agents/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Skills: 28](https://img.shields.io/badge/Skills-28-brightgreen.svg)](#skills-overview)
 [![Platforms: 5](https://img.shields.io/badge/Platforms-5-8957e5.svg)](#platform-skills)
 [![npm version](https://img.shields.io/npm/v/context-management-for-agents?label=npm)](https://www.npmjs.com/package/context-management-for-agents)
+[![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://navendubrajesh.github.io/context-management-for-agents/)
 
 **Multi-platform Agent Skills for context engineering** — curated guidance for GitHub Copilot, Cursor, Amazon Kiro, Google Antigravity, and Amazon Q Developer, plus 13 platform-agnostic skills that transfer everywhere.
 
+## 5-minute quickstart
+
+```bash
+git clone https://github.com/navendubrajesh/context-management-for-agents.git
+cd context-management-for-agents
+pip install -e runtime/core -e runtime/mcp
+python examples/demo/run_demo.py          # Skill Router + ~93% handoff savings (offline)
+python examples/demo/run_mcp_demo.py      # MCP tools/list + route + pipeline
+```
+
+**MCP (Cursor / Copilot)** — add to `.cursor/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "context-skills": {
+      "command": "python",
+      "args": ["server.py"],
+      "cwd": "/path/to/context-management-for-agents/runtime/mcp",
+      "env": { "PYTHONPATH": "/path/to/context-management-for-agents/runtime/core" }
+    }
+  }
+}
+```
+
+**REST (one line):** `curl -s http://localhost:8080/skills` after `uvicorn app:app --app-dir runtime/api --port 8080`
+
+Full docs: [navendubrajesh.github.io/context-management-for-agents](https://navendubrajesh.github.io/context-management-for-agents/) · Demo details: [examples/demo/README.md](examples/demo/README.md)
+
+### Recording the demo GIF
+
+1. Run `python examples/demo/run_demo.py` in a terminal (80×24 or wider).
+2. Capture ~15s showing router output + token before/after lines (Windows: Xbox Game Bar / ShareX; macOS: Cmd+Shift+5).
+3. Save as `assets/demo.gif` (optimize with ezgif.com if needed).
+4. Replace the `<!-- DEMO_GIF -->` comment above with: `![Demo](assets/demo.gif)`
+
+Measured savings in the demo use **this repo's test fixtures** (not theoretical). See [Context Window Savings](#context-window-savings-measured).
+
 ## Table of Contents
 
+- [5-minute quickstart](#5-minute-quickstart)
 - [What is Context Engineering?](#what-is-context-engineering)
 - [Skills Overview](#skills-overview)
 - [Platform Skills](#platform-skills)
@@ -20,6 +63,7 @@
 - [Context Window Savings (Measured)](#context-window-savings-measured)
 - [Examples](#examples)
 - [Contributing](#contributing)
+- [Documentation site](#documentation-site)
 - [Credits & Inspiration](#credits--inspiration)
 - [About the Author](#about-the-author)
 - [Connect & Read More](#connect--read-more)
@@ -310,6 +354,18 @@ Full results: [context-savings-2026-06-14.json](researcher/benchmarks/context-sa
 | [code-generation-harness](examples/code-generation-harness/) | harness-engineering, tool-design, context-optimization |
 | [research-pipeline](examples/research-pipeline/) | multi-agent-patterns, filesystem-context, context-compression |
 | [multi-agent-coordination](examples/multi-agent-coordination/) | multi-agent-patterns, memory-systems, filesystem-context |
+
+## Documentation site
+
+MkDocs Material site in `docs/`, deployed to GitHub Pages on push to `main`.
+
+```bash
+pip install -r docs/requirements.txt
+python docs/scripts/generate_skills_catalog.py
+mkdocs serve   # http://127.0.0.1:8000
+```
+
+Skills catalog is **auto-generated** from `skills/*/SKILL.md` — run `python docs/scripts/check_skills_catalog.py` in CI.
 
 ## Contributing
 

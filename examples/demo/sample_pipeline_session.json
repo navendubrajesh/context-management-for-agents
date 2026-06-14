@@ -1,0 +1,7 @@
+{
+  "system_prompt": "You are a senior software engineer. Follow testing and documentation best practices.",
+  "tool_schemas": "[{\"name\":\"read_file\",\"description\":\"Read file contents\"},{\"name\":\"write_file\",\"description\":\"Write file contents\"},{\"name\":\"search\",\"description\":\"Search codebase\"},{\"name\":\"run_tests\",\"description\":\"Run pytest\"},{\"name\":\"tool_4\",\"description\":\"Inactive\"},{\"name\":\"tool_5\",\"description\":\"Inactive\"}]",
+  "retrieved_docs": "## Architecture Guide (full)\nComponent 1: Overview...\nComponent 2: Data layer...\nComponent 3: Authentication patterns — login flows, session tokens, OAuth integration...\nComponent 4: API layer...\nComponent 5: Frontend...\nComponent 6: Deployment...\nComponent 7: Security guidelines — rate limiting, lockout policies...\n",
+  "conversation_history": "[USER]: Refactor auth module\n[ASSISTANT]: Split into 8 packages; tests pass\n[USER]: Add rate limiting to login\n[ASSISTANT]: Design: 10/IP/15min, progressive lockout\n[TOOL]: Created auth/login.py\n[ASSISTANT]: Ready for handoff",
+  "current_task": "Hand off compressed session to successor agent for rate-limit implementation on auth/login.py"
+}

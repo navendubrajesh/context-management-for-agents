@@ -1,0 +1,8 @@
+[
+  {"role": "system", "content": "You are a senior software engineer helping refactor a Python web application."},
+  {"role": "user", "content": "I need to refactor our user authentication module. It's grown to over 2000 lines and handles login, registration, password reset, OAuth, API keys, and session management all in one file. Can you help break it down?"},
+  {"role": "assistant", "content": "I'll analyze the auth module and propose splitting into login, registration, password reset, oauth, api_keys, and middleware packages."},
+  {"role": "tool", "name": "file_read", "content": "# auth.py - monolithic authentication module (login, register, oauth, api keys, middleware)... [truncated for demo]"},
+  {"role": "assistant", "content": "All 10 existing tests pass. Extracted auth/login.py (45 lines) and auth/password_utils.py (25 lines). Ready for rate limiting on login."},
+  {"role": "user", "content": "Great. Before we hand off to another agent, compress this session for a clean handoff."}
+]

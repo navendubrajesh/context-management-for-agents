@@ -1,0 +1,41 @@
+site_name: Context Management for Agents
+site_description: Multi-platform Agent Skills and runtime for context engineering
+site_url: https://navendubrajesh.github.io/context-management-for-agents/
+repo_url: https://github.com/navendubrajesh/context-management-for-agents
+repo_name: navendubrajesh/context-management-for-agents
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+  features:
+    - navigation.tabs
+    - content.code.copy
+
+nav:
+  - Home: index.md
+  - Quickstart: quickstart.md
+  - Concepts: concepts.md
+  - Skills catalog: skills/index.md
+  - Runtime: runtime.md
+  - Benchmarks: benchmarks.md
+  - Architecture: architecture.md
+  - Enterprise: ENTERPRISE.md
+  - Roadmap: roadmap.md
+  - Runbook: RUNBOOK.md
+  - Contributing: contributing.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - toc:
+      permalink: true
+
+plugins:
+  - search
+
+docs_dir: docs

@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install runtime packages
+        run: |
+          pip install -e control-plane/iam
+          pip install -e control-plane/tenancy
+          pip install -e control-plane/policy
+          pip install -e control-plane/audit
+          pip install -e control-plane/finops
+          pip install -e runtime/core
+          pip install -e runtime/api
+          pip install -e runtime/mcp
+          pip install -e runtime/sdk-python
+          pip install pytest httpx fastapi uvicorn tiktoken pyjwt[crypto] mcp
+
+      - name: Four validation gates
+        run: |
+          python researcher/scripts/validate_repo.py --strict
+          python researcher/scripts/skill_health.py --strict --no-history
+          python researcher/scripts/run_benchmarks.py
+          python researcher/scripts/check_activation_cases.py
+
+      - name: Runtime tests
+        working-directory: runtime
+        run: python -m pytest tests/ -q
+
+      - name: Skills catalog drift check
+        run: python docs/scripts/check_skills_catalog.py
+
+      - name: Runnable demo
+        run: |
+          python examples/demo/run_demo.py
+          python examples/demo/run_mcp_demo.py
+
+      - name: Docs build
+        run: |
+          pip install -r docs/requirements.txt
+          mkdocs build --strict
