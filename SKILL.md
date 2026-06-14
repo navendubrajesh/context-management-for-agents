@@ -1,80 +1,95 @@
 ---
 name: context-engineering-collection
-description: A comprehensive collection of Agent Skills for context engineering, harness engineering, multi-agent architectures, and production agent systems — optimized for GitHub Copilot. Use when building, optimizing, evaluating, or debugging agent systems that require effective context management and reliable operating loops.
-version: 1.0.0
+description: A comprehensive multi-platform collection of Agent Skills for context engineering, harness engineering, multi-agent architectures, and production agent systems. Covers GitHub Copilot, Cursor, Amazon Kiro, Google Antigravity, and Amazon Q Developer. Use when building, optimizing, evaluating, or debugging agent systems that require effective context management.
+version: 2.0.0
 author: Navendu Brajesh
 ---
 
-# Agent Skills for Context Engineering
+# Context Management for Agents
 
-This collection provides structured guidance for building production-grade AI agent systems through effective context engineering. It is optimized for GitHub Copilot (VS Code, Copilot CLI, and the Copilot coding agent) but works with any agent platform that supports skills or custom instructions.
+Structured guidance for building production-grade AI agent systems through effective context engineering. Works across GitHub Copilot, Cursor, Amazon Kiro, Google Antigravity, and Amazon Q Developer — plus any platform that supports skills or custom instructions.
 
 ## When to Activate
 
 Activate these skills when:
-- Building new agent systems from scratch
-- Optimizing existing agent performance
-- Debugging context-related failures
-- Designing multi-agent architectures
-- Creating or evaluating tools for agents
-- Implementing memory and persistence layers
-- Designing autonomous research or evaluation harnesses
-- Tuning GitHub Copilot's context behavior or managing long Copilot CLI sessions
-- Authoring Copilot customization files (instructions, prompt files, AGENTS.md, MCP config)
+- Building or optimizing agent systems on any supported platform
+- Debugging context-related failures or attention degradation
+- Authoring platform-native steering files (rules, steering, AGENTS.md, copilot-instructions)
+- Managing long agent sessions, compaction, or durable context artifacts
+- Designing multi-agent architectures, memory, tools, or evaluation harnesses
 
 ## Skill Map
 
-### Copilot Platform
+### Platform Skills — GitHub Copilot
 
-**Copilot Context Architecture**
-How GitHub Copilot assembles context: the client-side prompt wishlist (BeforeCursor, AfterCursor, SimilarFile, ImportedFile, markers) fulfilled against a token budget, Jaccard-based neighboring-tab snippet ranking, Fill-in-the-Middle prompts, the server-side semantic RAG index with a custom embedding model, instruction-file layering, and enterprise governance (content exclusions, training opt-outs, data residency).
+**Copilot Context Architecture** — Client FIM prompt wishlist, Jaccard snippet ranking, semantic RAG index, instruction layering, enterprise governance.
 
-**Copilot Session Management**
-The context-window lifecycle in Copilot CLI: monitoring with `/context`, automatic compaction at ~80% capacity, manual `/compact`, checkpoints via `/session checkpoints`, and deciding between long-running sessions and fresh starts.
+**Copilot Session Management** — CLI `/context`, compaction, checkpoints, long-session hygiene.
 
-**Copilot Customization**
-The file-based steering surface: repository `copilot-instructions.md`, path-scoped `.instructions.md` with `applyTo` globs, prompt files, `AGENTS.md` for the coding agent, and MCP server configuration. Covers which layer to use for what, how to budget the always-on instruction cost, and the failure modes that make Copilot ignore or misapply instructions.
+**Copilot Customization** — `copilot-instructions.md`, path-scoped `.instructions.md`, prompt files, `AGENTS.md`, MCP.
+
+### Platform Skills — Cursor
+
+**Cursor Context Architecture** — Semantic codebase indexing, @-mentions, rule injection, subagent isolation, context ring.
+
+**Cursor Session Management** — Context ring monitoring, automatic summarization, `/compress`, multi-tab sessions.
+
+**Cursor Customization** — `.cursor/rules/*.mdc`, nested `AGENTS.md`, user/team rules, MCP.
+
+### Platform Skills — Amazon Kiro
+
+**Kiro Context Architecture** — Steering inclusion modes, foundational docs, spec artifacts, file references.
+
+**Kiro Session Management** — Spec-driven durable context (requirements/design/tasks), spec refresh vs fresh chat.
+
+**Kiro Customization** — `.kiro/steering/` frontmatter, global vs workspace scope, hooks, MCP.
+
+### Platform Skills — Google Antigravity
+
+**Antigravity Context Architecture** — AGENTS.md, Knowledge Items, Skills, Artifacts, Editor vs Manager surfaces.
+
+**Antigravity Session Management** — Artifact review cycles, KI hygiene, Manager Surface handoffs.
+
+**Antigravity Customization** — Root/nested AGENTS.md, `.agents/skills/`, workflows, MCP.
+
+### Platform Skills — Amazon Q Developer
+
+**Amazon Q Context Architecture** — `.amazonq/rules/` loading, CLI context profiles, token limits.
+
+**Amazon Q Session Management** — `/compact`, ~80% nudge, `/clear`, CLI auto-compaction.
+
+**Amazon Q Customization** — `.amazonq/rules/`, custom CLI agents, AmazonQ.md scaffolds.
 
 ### Foundational Context Engineering
 
-**Understanding Context Fundamentals**
-Context is not just prompt text — it is the complete state available to the language model at inference time, including system instructions, tool definitions, retrieved documents, message history, and tool outputs. Effective context engineering means understanding what information truly matters for the task at hand and curating that information for maximum signal-to-noise ratio.
+**Context Fundamentals** — What context is, attention mechanics, U-curve, progressive disclosure principles.
 
-**Recognizing Context Degradation**
-Language models exhibit predictable degradation patterns as context grows: the "lost-in-middle" phenomenon where information in the center of context receives less attention; U-shaped attention curves that prioritize beginning and end; context poisoning when errors compound; and context distraction when irrelevant information overwhelms relevant content.
+**Context Degradation** — Lost-in-middle, poisoning, distraction, clash.
 
-**Compression Under Pressure**
-Long-running agent sessions accumulate history that eventually exceeds useful capacity. Compression strategies — hierarchical summarization, selective retention, token budgeting — preserve task-critical state while shedding noise. The key insight is that compression is not lossless: every strategy trades some fidelity for capacity, and the engineering challenge is choosing what to lose.
+**Context Compression** — Summarization, selective retention, handoff summaries.
 
 ### Architectural Patterns
 
-**Multi-Agent Coordination**
-Production multi-agent systems converge on three dominant patterns: supervisor/orchestrator architectures with centralized control, peer-to-peer swarm architectures for flexible handoffs, and hierarchical structures for complex task decomposition. The critical insight is that sub-agents exist primarily to isolate context rather than to simulate organizational roles.
+**Multi-Agent Patterns** — Orchestrator, peer-to-peer, hierarchical; context isolation as primary purpose.
 
-**Memory System Design**
-Memory architectures range from simple scratchpads to sophisticated temporal knowledge graphs. Vector RAG provides semantic retrieval but loses relationship information. Knowledge graphs preserve structure but require more engineering investment. The file-system-as-memory pattern enables just-in-time context loading without stuffing context windows.
+**Memory Systems** — Scratchpads, vector RAG, knowledge graphs, filesystem-as-memory.
 
-**Tool Design Principles**
-Tools are contracts between deterministic systems and non-deterministic agents. Effective tool design follows the consolidation principle (prefer single comprehensive tools over multiple narrow ones), returns contextual information in error messages, and treats descriptions as prompt engineering that directly steers agent behavior.
+**Tool Design** — Consolidation principle, descriptions as steering, contextual errors.
 
-**Filesystem-Based Context**
-The filesystem provides a single interface for storing, retrieving, and updating effectively unlimited context. Key patterns include scratch pads for tool output offloading, plan persistence for long-horizon tasks, sub-agent communication via shared files, and dynamic skill loading. Agents use `ls`, `glob`, `grep`, and `read_file` for targeted context discovery, often outperforming semantic search for structural queries.
+**Filesystem Context** — Offloading, plans, sub-agent files, dynamic discovery.
 
-**Hosted Agent Infrastructure**
-Background coding agents run in remote sandboxed environments rather than on local machines. Key patterns include pre-built environment images refreshed on regular cadence, warm sandbox pools for instant session starts, filesystem snapshots for session persistence, and multiplayer support for collaborative agent sessions.
+**Hosted Agents** — Sandboxed VMs, warm pools, snapshots, multiplayer.
 
 ### Operational Excellence
 
-**Context Optimization**
-Token-level efficiency tactics: observation masking removes redundant tool outputs, prefix caching reuses shared context prefixes, partitioning separates static from dynamic content, and budget allocation ensures each context component earns its token cost.
+**Context Optimization** — Masking, partitioning, prefix caching, budgets.
 
-**Evaluation Frameworks**
-Deterministic evaluation gates catch regressions before deployment. Production evaluation stacks combine assertion-based checks (format, structure, constraint compliance) with statistical sampling and LLM-as-judge techniques for subjective quality dimensions.
+**Evaluation** — Deterministic regression, pass/fail frameworks.
 
-**Harness Engineering**
-Autonomous agent harnesses manage the operating loop: locked evaluation metrics prevent gaming, durable logs enable post-hoc analysis, novelty gates prevent repetitive exploration, rollback mechanisms recover from failures, and human approval boundaries enforce safety constraints.
+**Advanced Evaluation** — LLM-as-judge, rubrics, pairwise, bias mitigation.
+
+**Harness Engineering** — Locked metrics, logs, novelty gates, rollback, HITL.
 
 ### Development Methodology
 
-**Project Development**
-LLM project lifecycle from ideation through deployment. Task-model fit analysis determines whether LLMs are appropriate. Pipeline architecture designs the flow of information. Structured output design ensures reliable parsing. Batch processing optimizes throughput and cost.
+**Project Development** — Task-model fit, pipeline architecture, structured outputs.

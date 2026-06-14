@@ -454,7 +454,7 @@ def benchmark_progressive_disclosure() -> BenchmarkResult:
     tokens_after = count_tokens(disclosure_text)
 
     return BenchmarkResult(
-        name="Progressive Disclosure: 15-Skill Collection",
+        name=f"Progressive Disclosure: {len(skill_sizes)}-Skill Collection",
         technique="Progressive Disclosure",
         skill="context-fundamentals",
         tokens_before=tokens_before,

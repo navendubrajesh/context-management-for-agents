@@ -1,6 +1,6 @@
 {
-  "version": "2.3.0",
-  "generated": "2025-01-01T00:00:00Z",
+  "version": "3.0.0",
+  "generated": "2026-06-14T00:00:00Z",
   "skills": {
     "context-fundamentals": {
       "mechanisms": ["mech-attention-u-curve", "mech-attention-sink"],
@@ -81,6 +81,66 @@
       "mechanisms": [],
       "claims": ["claim-copilot-customization-layers"],
       "references": []
+    },
+    "cursor-context-architecture": {
+      "mechanisms": [],
+      "claims": ["claim-cursor-context-architecture-indexing", "claim-cursor-context-architecture-compression"],
+      "references": ["skills/cursor-context-architecture/references/cursor-internals.md"]
+    },
+    "cursor-session-management": {
+      "mechanisms": [],
+      "claims": ["claim-cursor-context-architecture-compression"],
+      "references": []
+    },
+    "cursor-customization": {
+      "mechanisms": [],
+      "claims": ["claim-cursor-customization-rules"],
+      "references": ["skills/cursor-customization/references/cursor-rules.md"]
+    },
+    "kiro-context-architecture": {
+      "mechanisms": [],
+      "claims": ["claim-kiro-context-architecture-steering"],
+      "references": ["skills/kiro-context-architecture/references/kiro-steering-internals.md"]
+    },
+    "kiro-session-management": {
+      "mechanisms": [],
+      "claims": ["claim-kiro-session-management-specs"],
+      "references": []
+    },
+    "kiro-customization": {
+      "mechanisms": [],
+      "claims": ["claim-kiro-customization-inclusion"],
+      "references": ["skills/kiro-customization/references/kiro-steering-authoring.md"]
+    },
+    "antigravity-context-architecture": {
+      "mechanisms": [],
+      "claims": ["claim-antigravity-context-architecture-artifacts"],
+      "references": ["skills/antigravity-context-architecture/references/antigravity-internals.md"]
+    },
+    "antigravity-session-management": {
+      "mechanisms": [],
+      "claims": ["claim-antigravity-session-management-artifacts"],
+      "references": []
+    },
+    "antigravity-customization": {
+      "mechanisms": [],
+      "claims": ["claim-antigravity-customization-agents"],
+      "references": ["skills/antigravity-customization/references/antigravity-agents-layout.md"]
+    },
+    "amazonq-context-architecture": {
+      "mechanisms": [],
+      "claims": ["claim-amazonq-context-architecture-limits"],
+      "references": ["skills/amazonq-context-architecture/references/amazonq-context-internals.md"]
+    },
+    "amazonq-session-management": {
+      "mechanisms": [],
+      "claims": ["claim-amazonq-session-management-compaction"],
+      "references": []
+    },
+    "amazonq-customization": {
+      "mechanisms": [],
+      "claims": ["claim-amazonq-customization-rules"],
+      "references": ["skills/amazonq-customization/references/amazonq-rules-authoring.md"]
     }
   }
 }

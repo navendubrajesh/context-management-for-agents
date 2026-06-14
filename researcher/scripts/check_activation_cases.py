@@ -12,24 +12,36 @@ import sys
 import json
 import re
 
-# Expected 17 skills
+# Expected 28 skills (13 platform-agnostic + 15 platform-specific)
 EXPECTED_SKILLS = {
-    "copilot-context-architecture",
-    "copilot-session-management",
-    "context-fundamentals",
-    "context-degradation",
-    "context-compression",
-    "multi-agent-patterns",
-    "memory-systems",
-    "tool-design",
-    "filesystem-context",
-    "hosted-agents",
-    "context-optimization",
-    "evaluation",
     "advanced-evaluation",
-    "harness-engineering",
-    "project-development",
+    "amazonq-context-architecture",
+    "amazonq-customization",
+    "amazonq-session-management",
+    "antigravity-context-architecture",
+    "antigravity-customization",
+    "antigravity-session-management",
+    "context-compression",
+    "context-degradation",
+    "context-fundamentals",
+    "context-optimization",
+    "copilot-context-architecture",
     "copilot-customization",
+    "copilot-session-management",
+    "cursor-context-architecture",
+    "cursor-customization",
+    "cursor-session-management",
+    "evaluation",
+    "filesystem-context",
+    "harness-engineering",
+    "hosted-agents",
+    "kiro-context-architecture",
+    "kiro-customization",
+    "kiro-session-management",
+    "memory-systems",
+    "multi-agent-patterns",
+    "project-development",
+    "tool-design",
 }
 
 def log_error(msg):

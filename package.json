@@ -1,16 +1,16 @@
 {
-  "name": "context-management-for-copilot",
-  "version": "1.0.0",
-  "description": "Downloadable Agent Skills for context engineering, optimization, and compression in GitHub Copilot",
+  "name": "context-management-for-agents",
+  "version": "2.0.0",
+  "description": "Multi-platform Agent Skills for context engineering across GitHub Copilot, Cursor, Amazon Kiro, Google Antigravity, and Amazon Q Developer",
   "main": "bin/cli.js",
   "bin": {
-    "context-management-for-copilot": "bin/cli.js"
+    "context-management-for-agents": "bin/cli.js"
   },
   "files": [
     "skills",
     "bin",
     "SKILL.md",
-    "COPILOT.md",
+    "AGENTS.md",
     "README.md",
     "LICENSE"
   ],
@@ -18,16 +18,17 @@
     "test": "echo \"Error: no test specified\" && exit 0"
   },
   "keywords": [
-    "copilot",
-    "github-copilot",
     "agent",
     "skills",
-    "context-window",
-    "ai",
     "context-engineering",
     "context-management",
-    "context-optimization",
-    "copilot-instructions"
+    "github-copilot",
+    "cursor",
+    "kiro",
+    "antigravity",
+    "amazon-q",
+    "copilot-instructions",
+    "agents-md"
   ],
   "author": "Navendu Brajesh",
   "contributors": [
@@ -36,9 +37,9 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/your-username/context-management-for-copilot.git"
+    "url": "git+https://github.com/navendubrajesh/context-management-for-agents.git"
   },
-  "homepage": "https://github.com/your-username/context-management-for-copilot",
+  "homepage": "https://github.com/navendubrajesh/context-management-for-agents",
   "license": "MIT",
   "engines": {
     "node": ">=16.0.0"
