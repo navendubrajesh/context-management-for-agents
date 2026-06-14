@@ -1,0 +1,46 @@
+{
+  "name": "context-management-for-copilot",
+  "version": "1.0.0",
+  "description": "Downloadable Agent Skills for context engineering, optimization, and compression in GitHub Copilot",
+  "main": "bin/cli.js",
+  "bin": {
+    "context-management-for-copilot": "bin/cli.js"
+  },
+  "files": [
+    "skills",
+    "bin",
+    "SKILL.md",
+    "COPILOT.md",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 0"
+  },
+  "keywords": [
+    "copilot",
+    "github-copilot",
+    "agent",
+    "skills",
+    "context-window",
+    "ai",
+    "context-engineering",
+    "context-management",
+    "context-optimization",
+    "copilot-instructions"
+  ],
+  "author": "Navendu Brajesh",
+  "contributors": [
+    "maybeanns (context-management-for-antigravity)",
+    "Muratcan Koylan (Agent-Skills-for-Context-Engineering)"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-username/context-management-for-copilot.git"
+  },
+  "homepage": "https://github.com/your-username/context-management-for-copilot",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

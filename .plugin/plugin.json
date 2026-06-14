@@ -1,0 +1,39 @@
+{
+  "schema_version": "1.0.0",
+  "info": {
+    "title": "Agent Skills for Context Engineering (GitHub Copilot)",
+    "description": "Production context engineering skills for AI agent systems, optimized for GitHub Copilot. 16 skills covering context management, multi-agent patterns, evaluation, harness engineering, and Copilot platform internals (context architecture, session management, customization).",
+    "version": "1.0.0",
+    "author": "Navendu Brajesh",
+    "license": "MIT",
+    "homepage": "https://github.com/your-username/context-management-for-copilot"
+  },
+  "skills_directory": "skills/",
+  "skill_entry_file": "SKILL.md",
+  "template": "template/SKILL.md",
+  "platforms": [
+    "github-copilot",
+    "claude-code",
+    "cursor",
+    "antigravity-ide",
+    "open-plugins"
+  ],
+  "skills": [
+    "copilot-context-architecture",
+    "copilot-session-management",
+    "copilot-customization",
+    "context-fundamentals",
+    "context-degradation",
+    "context-compression",
+    "multi-agent-patterns",
+    "memory-systems",
+    "tool-design",
+    "filesystem-context",
+    "hosted-agents",
+    "context-optimization",
+    "evaluation",
+    "advanced-evaluation",
+    "harness-engineering",
+    "project-development"
+  ]
+}
