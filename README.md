@@ -257,12 +257,13 @@ Adapted from:
 
 ## About the Author
 
-**Navendu Brajesh** is a Delivery Manager for Digital Enablement Platform Group Tools at [Sopra Steria](https://www.linkedin.com/company/soprasteria), based in Delhi, India. He works at the intersection of platform management, digital enablement, and AI/ML — with certifications spanning cloud architecture, AI foundations, and agile delivery (CSM, PMP).
+**[Navendu Brajesh](https://navendubrajesh.github.io)** is a Delivery Manager for Digital Enablement Platform Group Tools at [Sopra Steria](https://www.linkedin.com/company/soprasteria), based in Delhi, India. He works at the intersection of platform management, digital enablement, and AI/ML — with certifications spanning cloud architecture, AI foundations, and agile delivery (CSM, PMP).
 
-This collection reflects practical context-engineering patterns for production agent systems across the major agentic coding platforms teams adopt today.
+This collection reflects practical context-engineering patterns for production agent systems across the major agentic coding platforms teams adopt today. More projects and writing at **[navendubrajesh.github.io](https://navendubrajesh.github.io)**.
 
 ## Connect & Read More
 
+[![Portfolio](https://img.shields.io/badge/Portfolio-navendubrajesh.github.io-0f766e?style=flat)](https://navendubrajesh.github.io)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Navendu_Brajesh-0A66C2?style=flat&logo=linkedin&logoColor=white)](https://in.linkedin.com/in/navendubrajesh)
 [![Medium](https://img.shields.io/badge/Medium-@navendubrajesh-000000?style=flat&logo=medium&logoColor=white)](https://medium.com/@navendubrajesh)
 
