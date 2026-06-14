@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=61.0.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "context-audit"
+version = "1.0.0"
+description = "Tamper-evident audit log and data lineage for context-management-for-agents."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["context_audit*"]

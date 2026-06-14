@@ -52,6 +52,20 @@ def run_primitive(
                 tenant_id=tenant_id,
             )
         )
+        try:
+            from context_audit.lineage import get_lineage_store
+            from context_finops.quotas import get_quota_store
+
+            get_lineage_store().record(
+                operation=operation,
+                tenant_id=tenant_id,
+                correlation_id=cid,
+                input_value={"args": str(args)[:500], "kwargs_keys": list(kwargs.keys())},
+                output_value=result.output,
+            )
+            get_quota_store().record_tokens(tenant_id, result.metrics.tokens_after)
+        except ImportError:
+            pass
         record_primitive_metrics(
             operation=result.metrics.operation,
             tokens_before=result.metrics.tokens_before,
