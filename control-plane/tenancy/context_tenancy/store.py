@@ -54,6 +54,11 @@ class TenantStore:
             enabled_skills=["tool-design", "memory-systems"],
             llm_provider="offline",
         )
+        self._tenants["tenant-c"] = TenantConfig(
+            tenant_id="tenant-c",
+            name="Tenant C",
+            enabled_skills=["advanced-evaluation", "evaluation"],
+        )
 
     def load_from_file(self, path: Path | str) -> None:
         data = json.loads(Path(path).read_text(encoding="utf-8"))

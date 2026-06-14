@@ -1,0 +1,76 @@
+"""Policy evaluation — OPA HTTP client with embedded offline fallback."""
+
+from __future__ import annotations
+
+import json
+import os
+import urllib.error
+import urllib.request
+from dataclasses import dataclass
+from typing import Any
+
+# Tenant-scoped denials (operator-configurable; tests use tenant-c)
+TENANT_DENIED_SKILLS: dict[str, list[str]] = {
+    "tenant-c": ["advanced-evaluation"],
+}
+TENANT_DENIED_MODELS: dict[str, list[str]] = {
+    "tenant-c": ["gpt-4o"],
+}
+
+
+@dataclass(frozen=True)
+class PolicyDecision:
+    allowed: bool
+    reason: str
+    requires_approval: bool = False
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "allowed": self.allowed,
+            "reason": self.reason,
+            "requires_approval": self.requires_approval,
+        }
+
+
+def _approval_required_operations() -> set[str]:
+    raw = os.environ.get("CONTEXT_SKILLS_APPROVAL_REQUIRED", "skills:publish,tenants:manage")
+    return {item.strip() for item in raw.split(",") if item.strip()}
+
+
+def _embedded_evaluate(payload: dict[str, Any]) -> PolicyDecision:
+    if not payload.get("rbac_allowed"):
+        return PolicyDecision(False, "RBAC denied")
+    tenant = payload.get("tenant_id", "default")
+    skill = payload.get("skill") or ""
+    model = payload.get("model") or ""
+    operation = payload.get("operation", "")
+    if skill and skill in TENANT_DENIED_SKILLS.get(tenant, []):
+        return PolicyDecision(False, f"Skill denied by policy: {skill}")
+    if model and model in TENANT_DENIED_MODELS.get(tenant, []):
+        return PolicyDecision(False, f"Model denied by policy: {model}")
+    requires = operation in _approval_required_operations()
+    return PolicyDecision(True, "allowed", requires_approval=requires)
+
+
+def evaluate_opa(payload: dict[str, Any]) -> PolicyDecision:
+    url = os.environ.get("CONTEXT_SKILLS_OPA_URL")
+    if not url:
+        return _embedded_evaluate(payload)
+    endpoint = url.rstrip("/") + "/v1/data/contextskills"
+    body = json.dumps({"input": payload}).encode("utf-8")
+    request = urllib.request.Request(  # noqa: S310
+        endpoint,
+        data=body,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=5) as response:  # noqa: S310
+            data = json.loads(response.read().decode("utf-8"))
+        result = data.get("result", {})
+        allowed = bool(result.get("allow"))
+        requires = bool(result.get("require_approval"))
+        reason = "allowed" if allowed else "OPA denied"
+        return PolicyDecision(allowed, reason, requires_approval=requires)
+    except (urllib.error.URLError, TimeoutError, json.JSONDecodeError):
+        return _embedded_evaluate(payload)

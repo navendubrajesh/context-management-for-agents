@@ -1,4 +1,4 @@
-"""Policy enforcement — deny-by-default when auth is enforced."""
+"""Policy enforcement — RBAC + OPA, deny-by-default when auth is enforced."""
 
 from __future__ import annotations
 
@@ -11,6 +11,13 @@ except ImportError:
     is_auth_enforced = lambda: False  # noqa: E731
     authorize_operation = None
 
+try:
+    from context_policy.approvals import get_approval_store
+    from context_policy.engine import evaluate_opa
+except ImportError:
+    evaluate_opa = None
+    get_approval_store = None
+
 
 def evaluate_policy(operation: str, context: dict[str, Any] | None = None) -> bool:
     """Return True when an operation is permitted."""
@@ -20,4 +27,30 @@ def evaluate_policy(operation: str, context: dict[str, Any] | None = None) -> bo
     principal = context.get("principal")
     if principal is None or authorize_operation is None:
         return False
-    return authorize_operation(principal, operation)
+
+    rbac_allowed = authorize_operation(principal, operation)
+    if evaluate_opa is None:
+        return rbac_allowed
+
+    decision = evaluate_opa(
+        {
+            "operation": operation,
+            "tenant_id": principal.tenant_id,
+            "roles": list(principal.roles),
+            "rbac_allowed": rbac_allowed,
+            "skill": context.get("skill", ""),
+            "model": context.get("model", ""),
+            "denied_skills": context.get("denied_skills", []),
+            "denied_models": context.get("denied_models", []),
+        }
+    )
+    if not decision.allowed:
+        return False
+    if decision.requires_approval:
+        approval_id = context.get("approval_id")
+        if not approval_id or get_approval_store is None:
+            return False
+        req = get_approval_store().get(approval_id)
+        if req is None or req.status != "approved" or req.operation != operation:
+            return False
+    return True
