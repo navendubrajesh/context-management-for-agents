@@ -1,0 +1,24 @@
+image:
+  repository: context-skills/api
+  tag: "3.0.0"
+replicaCount: 2
+auth:
+  mode: disabled
+region: us-east-1
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+ingress:
+  enabled: true
+  host: skills.local
+  tls: true
+opa:
+  enabled: true
+  url: http://opa:8181
+console:
+  enabled: true
+probes:
+  liveness: /healthz
+  readiness: /healthz

@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: context-skills-api
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: context-skills-api
+  template:
+    metadata:
+      labels:
+        app: context-skills-api
+    spec:
+      containers:
+        - name: api
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          ports:
+            - containerPort: 8080
+          env:
+            - name: CONTEXT_SKILLS_AUTH_MODE
+              value: {{ .Values.auth.mode | quote }}
+            - name: CONTEXT_SKILLS_REGION
+              value: {{ .Values.region | quote }}
+            - name: CONTEXT_SKILLS_OPA_URL
+              value: {{ .Values.opa.url | quote }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.probes.liveness }}
+              port: 8080
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.probes.readiness }}
+              port: 8080
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
