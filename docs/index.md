@@ -34,6 +34,7 @@ You will see the router select `context-compression` for a handoff task and prin
 - [Skills catalog](skills/index.md) — auto-generated index
 - [Runtime reference](runtime.md) — MCP tools and REST endpoints
 - [Benchmarks](benchmarks.md) — measured savings (with caveats)
+- [Enterprise landing](https://navendubrajesh.github.io/context-management-for-agents.enterprise/) — overview and links
 - [Enterprise deployment](ENTERPRISE.md) — regulated deployment patterns
 
 ## Honest claims

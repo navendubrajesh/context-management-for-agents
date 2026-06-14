@@ -294,7 +294,7 @@ More examples: `runtime/sdk-python/README.md`, TypeScript client: `runtime/sdk-t
 
 ## Validation Gates
 
-See [Enterprise deployment guide](docs/ENTERPRISE.md) for Phase 3 identity, tenancy, policy, audit, FinOps, supply-chain, console, and Helm/Terraform deployment.
+See [Enterprise landing](https://navendubrajesh.github.io/context-management-for-agents.enterprise/) and the [Enterprise deployment guide](docs/ENTERPRISE.md) for Phase 3 identity, tenancy, policy, audit, FinOps, supply-chain, console, and Helm/Terraform deployment.
 
 ```bash
 python3 researcher/scripts/validate_repo.py --strict
