@@ -14,6 +14,7 @@ test = [
     "context-skills-core",
     "context-skills-api",
     "context-skills-sdk",
+    "context-iam",
     "pytest>=7.0.0",
     "httpx>=0.27.0",
     "fastapi>=0.110.0",
@@ -22,8 +23,9 @@ test = [
     "opentelemetry-api>=1.24.0",
     "opentelemetry-sdk>=1.24.0",
     "pyyaml>=6.0.0",
+    "pyjwt[crypto]>=2.8.0",
 ]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["core", "api", "sdk-python"]
+pythonpath = ["core", "api", "sdk-python", "../control-plane/iam"]

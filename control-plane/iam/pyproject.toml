@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61.0.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "context-iam"
+version = "1.0.0"
+description = "Enterprise IAM for context-management-for-agents (OIDC, SCIM, RBAC, API keys)."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "pyjwt[crypto]>=2.8.0",
+    "cryptography>=42.0.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0.0"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["context_iam*"]

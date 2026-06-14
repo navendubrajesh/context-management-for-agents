@@ -7,10 +7,15 @@ import time
 from pathlib import Path
 from typing import Any, Literal
 
-from fastapi import FastAPI, HTTPException, Request
+from deps import PUBLIC_PATHS, require_operation, resolve_principal
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
+from scim_routes import router as scim_router
 
+from context_iam.auth import authenticate_request, is_auth_enforced
+from context_iam.identity import Principal
 from context_skills import get_reference, get_skill, list_skills, route
 from context_skills.metering import emit_usage, get_usage_sink, new_correlation_id
 from context_skills.metering.usage import UsageRecord
@@ -29,7 +34,7 @@ from context_skills.telemetry import init_telemetry, record_primitive_metrics, t
 app = FastAPI(
     title="Context Skills Runtime API",
     description="Language-agnostic REST API for discovering, routing, and applying Agent Skills.",
-    version="2.0.0",
+    version="3.0.0",
 )
 
 app.add_middleware(
@@ -38,6 +43,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(scim_router)
 
 
 class RouteRequest(BaseModel):
@@ -95,12 +102,40 @@ def _correlation_id(request: Request) -> str:
     return request.headers.get("x-correlation-id") or new_correlation_id()
 
 
+def _tenant_id(request: Request) -> str | None:
+    return getattr(request.state, "tenant_id", None)
+
+
 def _primitive_response(result, correlation_id: str) -> PrimitiveResponse:
     return PrimitiveResponse(
         output=result.output,
         metrics=result.metrics.to_dict(),
         correlation_id=correlation_id,
     )
+
+
+@app.middleware("http")
+async def auth_middleware(request: Request, call_next):  # noqa: ANN001
+    path = request.url.path
+    if not is_auth_enforced() or path in PUBLIC_PATHS:
+        try:
+            request.state.principal = resolve_principal(request)
+            request.state.tenant_id = request.state.principal.tenant_id
+        except HTTPException:
+            request.state.principal = None
+            request.state.tenant_id = "default"
+        return await call_next(request)
+    try:
+        principal = authenticate_request(
+            authorization=request.headers.get("authorization"),
+            api_key=request.headers.get("x-api-key"),
+            saml_assertion=request.headers.get("x-saml-assertion"),
+        )
+        request.state.principal = principal
+        request.state.tenant_id = principal.tenant_id
+    except PermissionError as exc:
+        return JSONResponse(status_code=401, content={"detail": str(exc)})
+    return await call_next(request)
 
 
 @app.middleware("http")
@@ -128,12 +163,19 @@ def healthz() -> dict[str, str]:
 
 
 @app.get("/skills")
-def get_skills(request: Request) -> list[dict[str, str]]:
+def get_skills(
+    request: Request,
+    _: Principal = Depends(require_operation("skills:read")),
+) -> list[dict[str, str]]:
     return list_skills(_repo_root(request))
 
 
 @app.get("/skills/{name}")
-def get_skill_by_name(name: str, request: Request) -> dict[str, Any]:
+def get_skill_by_name(
+    name: str,
+    request: Request,
+    _: Principal = Depends(require_operation("skills:read")),
+) -> dict[str, Any]:
     try:
         return get_skill(name, _repo_root(request))
     except FileNotFoundError as exc:
@@ -141,7 +183,11 @@ def get_skill_by_name(name: str, request: Request) -> dict[str, Any]:
 
 
 @app.post("/route", response_model=RouteResponse)
-def route_task(payload: RouteRequest, request: Request) -> RouteResponse:
+def route_task(
+    payload: RouteRequest,
+    request: Request,
+    _: Principal = Depends(require_operation("skills:read")),
+) -> RouteResponse:
     cid = request.state.correlation_id
     start = time.perf_counter()
     with trace_operation("route_task", correlation_id=cid):
@@ -153,6 +199,7 @@ def route_task(payload: RouteRequest, request: Request) -> RouteResponse:
             tokens_after=len(results),
             est_cost_usd=0.0,
             correlation_id=cid,
+            tenant_id=_tenant_id(request),
         )
     )
     record_primitive_metrics(
@@ -166,7 +213,12 @@ def route_task(payload: RouteRequest, request: Request) -> RouteResponse:
 
 
 @app.get("/skills/{name}/references/{path:path}")
-def get_skill_reference(name: str, path: str, request: Request) -> dict[str, str]:
+def get_skill_reference(
+    name: str,
+    path: str,
+    request: Request,
+    _: Principal = Depends(require_operation("skills:read")),
+) -> dict[str, str]:
     try:
         content = get_reference(name, path, _repo_root(request))
     except FileNotFoundError as exc:
@@ -177,7 +229,11 @@ def get_skill_reference(name: str, path: str, request: Request) -> dict[str, str
 
 
 @app.post("/primitives/mask_observation", response_model=PrimitiveResponse)
-def api_mask_observation(payload: MaskRequest, request: Request) -> PrimitiveResponse:
+def api_mask_observation(
+    payload: MaskRequest,
+    request: Request,
+    _: Principal = Depends(require_operation("primitives:run")),
+) -> PrimitiveResponse:
     cid = request.state.correlation_id
     result = run_primitive(
         mask_observation,
@@ -190,7 +246,11 @@ def api_mask_observation(payload: MaskRequest, request: Request) -> PrimitiveRes
 
 
 @app.post("/primitives/compact_session", response_model=PrimitiveResponse)
-def api_compact_session(payload: CompactRequest, request: Request) -> PrimitiveResponse:
+def api_compact_session(
+    payload: CompactRequest,
+    request: Request,
+    _: Principal = Depends(require_operation("primitives:run")),
+) -> PrimitiveResponse:
     cid = request.state.correlation_id
     result = run_primitive(
         compact_session,
@@ -203,7 +263,11 @@ def api_compact_session(payload: CompactRequest, request: Request) -> PrimitiveR
 
 
 @app.post("/primitives/budget_context", response_model=PrimitiveResponse)
-def api_budget_context(payload: BudgetRequest, request: Request) -> PrimitiveResponse:
+def api_budget_context(
+    payload: BudgetRequest,
+    request: Request,
+    _: Principal = Depends(require_operation("primitives:run")),
+) -> PrimitiveResponse:
     cid = request.state.correlation_id
     components = [ContextComponent(**item) for item in payload.components]
     result = run_primitive(
@@ -216,7 +280,11 @@ def api_budget_context(payload: BudgetRequest, request: Request) -> PrimitiveRes
 
 
 @app.post("/primitives/optimize_format", response_model=PrimitiveResponse)
-def api_optimize_format(payload: FormatRequest, request: Request) -> PrimitiveResponse:
+def api_optimize_format(
+    payload: FormatRequest,
+    request: Request,
+    _: Principal = Depends(require_operation("primitives:run")),
+) -> PrimitiveResponse:
     cid = request.state.correlation_id
     result = run_primitive(
         optimize_format,
@@ -228,7 +296,11 @@ def api_optimize_format(payload: FormatRequest, request: Request) -> PrimitiveRe
 
 
 @app.post("/primitives/run_context_pipeline", response_model=PrimitiveResponse)
-def api_run_context_pipeline(payload: PipelineRequest, request: Request) -> PrimitiveResponse:
+def api_run_context_pipeline(
+    payload: PipelineRequest,
+    request: Request,
+    _: Principal = Depends(require_operation("primitives:run")),
+) -> PrimitiveResponse:
     cid = request.state.correlation_id
     result = run_primitive(
         run_context_pipeline,
@@ -239,8 +311,16 @@ def api_run_context_pipeline(payload: PipelineRequest, request: Request) -> Prim
 
 
 @app.get("/usage")
-def get_usage(limit: int = 50) -> dict[str, Any]:
-    return {"records": get_usage_sink().recent(limit=limit)}
+def get_usage(
+    request: Request,
+    limit: int = 50,
+    _: Principal = Depends(require_operation("usage:read")),
+) -> dict[str, Any]:
+    tenant_id = _tenant_id(request)
+    records = get_usage_sink().recent(limit=limit)
+    if tenant_id and is_auth_enforced():
+        records = [r for r in records if r.get("tenant_id") == tenant_id]
+    return {"records": records}
 
 
 @app.on_event("startup")
