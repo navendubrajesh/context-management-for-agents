@@ -4,8 +4,9 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
-const PLATFORMS = ['copilot', 'cursor', 'kiro', 'antigravity', 'amazonq'];
+const PLATFORMS = ['copilot', 'cursor', 'kiro', 'antigravity', 'amazonq', 'claude'];
 const INDEX_MARKER = 'context-management-for-agents';
+const SKILL_NAMESPACE = 'context-engineering';
 
 function copyRecursiveSync(src, dest) {
   const stats = fs.statSync(src);
@@ -25,11 +26,15 @@ Usage:
   npx context-management-for-agents [options]
 
 Options:
-  --platform <name>  Target platform: copilot | cursor | kiro | antigravity | amazonq
+  --platform <name>  Target platform: copilot | cursor | kiro | antigravity | amazonq | claude
                      (default: copilot)
   --global           Global install (Copilot CLI / user-level paths where supported)
   --path <dir>       Copy skills only to a custom directory (no index generated)
+  --setup            After copy, create per-skill discovery dirs with SKILL.md symlinks
+                     (Claude Code / GStack-compatible layout)
   --help, -h         Show this help
+
+Install paths use namespace "${SKILL_NAMESPACE}/" to coexist with GStack and other skill packs.
 `);
 }
 
@@ -49,6 +54,19 @@ function listSkills(skillsDir) {
     .sort();
 }
 
+function buildCoStackSection() {
+  return [
+    '',
+    '### Co-installation with workflow skill packs (e.g. GStack)',
+    '',
+    '- **Workflow packs** (`/ship`, `/qa`, `/review`, …): building, testing, shipping, browser QA.',
+    '- **Context engineering skills** (this index): context window discipline — compression, masking, budgeting, platform context mechanics.',
+    '- Read **one** matching `SKILL.md` on activation; do not load all skills up front.',
+    '- When a workflow skill is active, follow its procedure; use context skills for *what to keep, compress, or mask* — not for release/QA steps.',
+    ''
+  ].join('\n');
+}
+
 function buildIndexLines(skillsDir, relSkillsPath) {
   const lines = [
     '',
@@ -56,7 +74,7 @@ function buildIndexLines(skillsDir, relSkillsPath) {
     '## Agent Skills for Context Engineering',
     '',
     `Skills are installed under \`${relSkillsPath}\`. Do NOT read all skill files up front. Use this index to decide relevance; when a skill matches, read its \`SKILL.md\` (then \`references/\` only if needed).`,
-    ''
+    buildCoStackSection()
   ];
   for (const skill of listSkills(skillsDir)) {
     const meta = readSkillMeta(path.join(skillsDir, skill, 'SKILL.md'));
@@ -105,13 +123,18 @@ function writePlatformIndex(platform, skillsDir, relSkillsPath, cwd, globalInsta
       fs.mkdirSync(rulesDir, { recursive: true });
       const mdcPath = path.join(rulesDir, 'context-engineering-skills-index.mdc');
       const body = `---
-description: Index of context-engineering skills. Read individual SKILL.md files on demand — do not load all skills up front.
+description: Index of context-engineering skills. Read individual SKILL.md files on demand — do not load all skills up front. Coexists with GStack at .cursor/skills/gstack.
 alwaysApply: true
 ---
 
 ${index.trim()}`;
       fs.writeFileSync(mdcPath, body);
       console.log(`  [✓] Created/updated: ${mdcPath}`);
+      break;
+    }
+    case 'claude': {
+      const claudeMdPath = path.join(cwd, 'CLAUDE.md');
+      writeOrUpdateFile(claudeMdPath, index, '# Claude Code Instructions\n\n');
       break;
     }
     case 'kiro': {
@@ -151,36 +174,79 @@ ${index.trim()}`;
 function resolveTarget(platform, globalInstall, customPath, cwd) {
   const home = os.homedir();
   if (customPath) {
-    return { targetDir: path.resolve(cwd, customPath), relSkillsPath: customPath, generateIndex: false };
+    return { targetDir: path.resolve(cwd, customPath), relSkillsPath: customPath, generateIndex: false, skillsParent: null };
   }
+  const ns = SKILL_NAMESPACE;
   const configs = {
     copilot: {
-      targetDir: globalInstall ? path.join(home, '.copilot', 'skills') : path.join(cwd, '.github', 'skills'),
-      relSkillsPath: globalInstall ? '~/.copilot/skills' : '.github/skills',
-      generateIndex: true
+      targetDir: globalInstall
+        ? path.join(home, '.copilot', 'skills', ns)
+        : path.join(cwd, '.github', 'skills', ns),
+      relSkillsPath: globalInstall ? `~/.copilot/skills/${ns}` : `.github/skills/${ns}`,
+      generateIndex: true,
+      skillsParent: globalInstall ? path.join(home, '.copilot', 'skills') : path.join(cwd, '.github', 'skills')
     },
     cursor: {
-      targetDir: path.join(cwd, '.cursor', 'skills'),
-      relSkillsPath: '.cursor/skills',
-      generateIndex: true
+      targetDir: path.join(cwd, '.cursor', 'skills', ns),
+      relSkillsPath: `.cursor/skills/${ns}`,
+      generateIndex: true,
+      skillsParent: path.join(cwd, '.cursor', 'skills')
+    },
+    claude: {
+      targetDir: globalInstall
+        ? path.join(home, '.claude', 'skills', ns)
+        : path.join(cwd, '.claude', 'skills', ns),
+      relSkillsPath: globalInstall ? `~/.claude/skills/${ns}` : `.claude/skills/${ns}`,
+      generateIndex: true,
+      skillsParent: globalInstall ? path.join(home, '.claude', 'skills') : path.join(cwd, '.claude', 'skills')
     },
     kiro: {
-      targetDir: globalInstall ? path.join(home, '.kiro', 'skills') : path.join(cwd, '.kiro', 'skills'),
-      relSkillsPath: globalInstall ? '~/.kiro/skills' : '.kiro/skills',
-      generateIndex: true
+      targetDir: globalInstall
+        ? path.join(home, '.kiro', 'skills', ns)
+        : path.join(cwd, '.kiro', 'skills', ns),
+      relSkillsPath: globalInstall ? `~/.kiro/skills/${ns}` : `.kiro/skills/${ns}`,
+      generateIndex: true,
+      skillsParent: globalInstall ? path.join(home, '.kiro', 'skills') : path.join(cwd, '.kiro', 'skills')
     },
     antigravity: {
-      targetDir: path.join(cwd, '.agents', 'skills'),
-      relSkillsPath: '.agents/skills',
-      generateIndex: true
+      targetDir: path.join(cwd, '.agents', 'skills', ns),
+      relSkillsPath: `.agents/skills/${ns}`,
+      generateIndex: true,
+      skillsParent: path.join(cwd, '.agents', 'skills')
     },
     amazonq: {
-      targetDir: path.join(cwd, '.amazonq', 'skills'),
-      relSkillsPath: '.amazonq/skills',
-      generateIndex: true
+      targetDir: path.join(cwd, '.amazonq', 'skills', ns),
+      relSkillsPath: `.amazonq/skills/${ns}`,
+      generateIndex: true,
+      skillsParent: path.join(cwd, '.amazonq', 'skills')
     }
   };
   return configs[platform];
+}
+
+function createDiscoverySymlinks(skillsParent, targetDir, platform) {
+  if (!skillsParent) return;
+  fs.mkdirSync(skillsParent, { recursive: true });
+  const skills = listSkills(targetDir);
+  let linked = 0;
+  for (const skill of skills) {
+    const discoveryDir = path.join(skillsParent, skill);
+    const skillMdLink = path.join(discoveryDir, 'SKILL.md');
+    const skillMdSrc = path.join(targetDir, skill, 'SKILL.md');
+    if (!fs.existsSync(skillMdSrc)) continue;
+    fs.mkdirSync(discoveryDir, { recursive: true });
+    try {
+      if (fs.existsSync(skillMdLink)) fs.unlinkSync(skillMdLink);
+      const type = process.platform === 'win32' ? 'file' : 'file';
+      fs.symlinkSync(path.resolve(skillMdSrc), skillMdLink, type);
+      linked++;
+    } catch (err) {
+      console.warn(`  [!] Could not symlink ${skill}: ${err.message}`);
+    }
+  }
+  if (linked > 0) {
+    console.log(`  [✓] Created ${linked} per-skill discovery symlink(s) under ${skillsParent}`);
+  }
 }
 
 function parseArgs(argv) {
@@ -190,6 +256,7 @@ function parseArgs(argv) {
     process.exit(0);
   }
   const globalInstall = args.includes('--global');
+  const runSetup = args.includes('--setup');
   const pathIdx = args.indexOf('--path');
   const platformIdx = args.indexOf('--platform');
   let platform = 'copilot';
@@ -201,11 +268,11 @@ function parseArgs(argv) {
     process.exit(1);
   }
   const customPath = pathIdx !== -1 && pathIdx < args.length - 1 ? args[pathIdx + 1] : null;
-  return { platform, globalInstall, customPath };
+  return { platform, globalInstall, customPath, runSetup };
 }
 
 function main() {
-  const { platform, globalInstall, customPath } = parseArgs(process.argv);
+  const { platform, globalInstall, customPath, runSetup } = parseArgs(process.argv);
   const cwd = process.cwd();
   const sourceSkillsDir = path.join(__dirname, '..', 'skills');
   const sourceRootSkill = path.join(__dirname, '..', 'SKILL.md');
@@ -215,7 +282,7 @@ function main() {
     process.exit(1);
   }
 
-  const { targetDir, relSkillsPath, generateIndex } = resolveTarget(platform, globalInstall, customPath, cwd);
+  const { targetDir, relSkillsPath, generateIndex, skillsParent } = resolveTarget(platform, globalInstall, customPath, cwd);
   console.log(`Installing Context Engineering Skills (${platform}) to: ${targetDir}`);
 
   try {
@@ -236,7 +303,15 @@ function main() {
     if (generateIndex) {
       writePlatformIndex(platform, targetDir, relSkillsPath, cwd, globalInstall);
     }
+    if (runSetup && skillsParent) {
+      createDiscoverySymlinks(skillsParent, targetDir, platform);
+    }
     console.log(`\nSuccess! Installed ${copiedCount} skills to ${targetDir}`);
+    if (runSetup) {
+      console.log('Per-skill discovery symlinks enabled (--setup).');
+    } else {
+      console.log(`Tip: run with --setup for GStack/Claude Code per-skill discovery under ${skillsParent || 'skills parent'}.`);
+    }
   } catch (err) {
     console.error('\nError occurred during installation:', err.message);
     process.exit(1);

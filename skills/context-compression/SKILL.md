@@ -21,6 +21,7 @@ Do not activate this skill for adjacent work owned by other skills:
 - Diagnosing specific failure patterns in degraded contexts: `context-degradation`.
 - Applying tactical token-efficiency techniques (masking, caching, partitioning): `context-optimization`.
 - Offloading content to filesystem rather than compressing it: `filesystem-context`.
+- Workspace/git state handoff (branch, dirty files, resume commands): GStack `/context-save` and `/context-restore` — those save *where you are*, not *what the conversation means*.
 
 ## Core Concepts
 

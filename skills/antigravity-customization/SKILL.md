@@ -68,6 +68,10 @@ Convert recurring code-review corrections into explicit prohibitions in AGENTS.m
 - **Missing verification commands.** Async Manager agents without test instructions ship untested diffs.
 - **Skills without descriptions.** Poor descriptions fail progressive disclosure matching.
 
+### Co-installation with workflow skill packs
+
+Install context engineering skills under `.agents/skills/context-engineering/`; keep GStack or other workflow packs in `.agents/skills/gstack/` (or equivalent). AGENTS.md index should list both stacks with ownership boundaries — do not duplicate skill bodies in AGENTS.md.
+
 ## Integration
 
 - `antigravity-context-architecture` explains how customized files enter Antigravity's pipeline.

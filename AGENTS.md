@@ -16,7 +16,24 @@ Context engineering is the discipline of curating everything that enters a model
 - `template/SKILL.md` — Canonical skill template
 - `SKILL.md` (root) — Collection-level skill map
 - `.plugin/plugin.json` — Open Plugins manifest
-- `bin/cli.js` — Multi-platform installer (`--platform copilot|cursor|kiro|antigravity|amazonq`)
+- `bin/cli.js` — Multi-platform installer (`--platform copilot|cursor|kiro|antigravity|amazonq|claude`)
+
+## Skill stacks (co-installation)
+
+This repository provides **context engineering** knowledge skills. Workflow harnesses (e.g. [GStack](https://github.com/garrytan/gstack) with `/ship`, `/qa`, `/review`) are complementary — install both with **separate namespaces**:
+
+| Stack | Purpose | Typical install path (Cursor) |
+|-------|---------|-------------------------------|
+| GStack | Build, test, ship, browser QA | `.cursor/skills/gstack/` |
+| Context engineering (this repo) | Context window discipline | `.cursor/skills/context-engineering/` |
+
+Rules:
+
+- Read **one** matching `SKILL.md` on activation; never load all skills up front.
+- When a GStack workflow skill is active, follow its procedure; use context skills for *what to keep, compress, or mask*.
+- Install: `npx context-management-for-agents --platform cursor --setup` (namespaced + discovery symlinks).
+
+See `docs/using-with-gstack.md` for the full coexistence guide.
 
 ## Build & Test Commands
 
@@ -56,13 +73,19 @@ cd examples/code-generation-harness && pip install -e ".[dev]" && pytest
 
 ## Platform Conventions
 
+### Claude Code
+- Install: `--platform claude` → `.claude/skills/context-engineering/` + `CLAUDE.md` index
+- Coexists with GStack at `.claude/skills/gstack/` — use `--setup` for per-skill discovery symlinks
+- Session: use GStack `/context-save` for workspace handoff; use `context-compression` for semantic history compression
+
 ### GitHub Copilot
-- Install: `npx context-management-for-agents --platform copilot` → `.github/skills/` + `.github/copilot-instructions.md`
+- Install: `npx context-management-for-agents --platform copilot` → `.github/skills/context-engineering/` + `.github/copilot-instructions.md`
 - Layering: personal → path-scoped `.instructions.md` (`applyTo`) → repo `copilot-instructions.md` → `AGENTS.md` → org
 - Session: `/context`, `/compact`, `/session checkpoints` in Copilot CLI
 
 ### Cursor
-- Install: `--platform cursor` → `.cursor/skills/` + `.cursor/rules/*.mdc` index
+- Install: `--platform cursor` → `.cursor/skills/context-engineering/` + `.cursor/rules/*.mdc` index
+- GStack coexistence: keep workflow skills under `.cursor/skills/gstack/`; context skills under `context-engineering/`
 - Rules: `.cursor/rules/*.mdc` with `description`, `globs`, `alwaysApply`; nested `AGENTS.md` supported
 - Session: context ring monitoring, `/compress` in CLI, automatic conversation summarization
 
@@ -72,7 +95,7 @@ cd examples/code-generation-harness && pip install -e ".[dev]" && pytest
 - Session: requirements/design/tasks artifacts — not CLI compaction
 
 ### Google Antigravity
-- Install: `--platform antigravity` → `.agents/skills/` + root `AGENTS.md` index
+- Install: `--platform antigravity` → `.agents/skills/context-engineering/` + root `AGENTS.md` index
 - Context: AGENTS.md, Knowledge Items, Artifacts, `.agents/skills/`; Editor vs Manager surfaces
 - Session: Artifact review cycles, KI hygiene, Manager Surface handoffs
 

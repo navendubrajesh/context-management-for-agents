@@ -23,6 +23,7 @@ nav:
   - Benchmarks: benchmarks.md
   - Architecture: architecture.md
   - Enterprise: ENTERPRISE.md
+  - Using with GStack: using-with-gstack.md
   - Roadmap: roadmap.md
   - Runbook: RUNBOOK.md
   - Contributing: contributing.md

@@ -22,6 +22,7 @@ Do not activate this skill for adjacent work owned by other skills:
 - Diagnosing specific failure patterns: `context-degradation`.
 - Designing compression strategies for long sessions: `context-compression`.
 - Offloading content to filesystem: `filesystem-context`.
+- Page load and Core Web Vitals regression: GStack `/benchmark` — that measures *performance*, not token savings (see this repo's benchmarks for context metrics).
 
 ## Core Concepts
 

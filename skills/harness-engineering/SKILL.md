@@ -22,6 +22,7 @@ Do not activate this skill for adjacent work owned by other skills:
 - Implementing LLM-as-judge scoring: `advanced-evaluation`.
 - Designing multi-agent coordination protocols: `multi-agent-patterns`.
 - Building hosted sandbox infrastructure: `hosted-agents`.
+- Inline destructive-command warnings during an active session: GStack `/careful`, `/freeze`, `/guard` — use those for tactical safety; this skill designs the full harness loop.
 
 ## Core Concepts
 

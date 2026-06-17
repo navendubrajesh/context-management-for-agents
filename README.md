@@ -5,11 +5,11 @@
 [![CI](https://github.com/navendubrajesh/context-management-for-agents/actions/workflows/ci.yml/badge.svg)](https://github.com/navendubrajesh/context-management-for-agents/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Skills: 28](https://img.shields.io/badge/Skills-28-brightgreen.svg)](#skills-overview)
-[![Platforms: 5](https://img.shields.io/badge/Platforms-5-8957e5.svg)](#platform-skills)
+[![Platforms: 6](https://img.shields.io/badge/Platforms-6-8957e5.svg)](#platform-skills)
 [![npm version](https://img.shields.io/npm/v/context-management-for-agents?label=npm)](https://www.npmjs.com/package/context-management-for-agents)
 [![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://navendubrajesh.github.io/context-management-for-agents/)
 
-**Multi-platform Agent Skills for context engineering** — curated guidance for GitHub Copilot, Cursor, Amazon Kiro, Google Antigravity, and Amazon Q Developer, plus 13 platform-agnostic skills that transfer everywhere.
+**Multi-platform Agent Skills for context engineering** — curated guidance for GitHub Copilot, Cursor, Claude Code, Amazon Kiro, Google Antigravity, and Amazon Q Developer, plus 13 platform-agnostic skills that transfer everywhere.
 
 ## 5-minute quickstart
 
@@ -162,27 +162,32 @@ npm i context-management-for-agents
 Or run directly with `npx`:
 
 ```bash
-# GitHub Copilot (default) → .github/skills/ + copilot-instructions.md
-npx context-management-for-agents --platform copilot
+# GitHub Copilot (default) → .github/skills/context-engineering/ + copilot-instructions.md
+npx context-management-for-agents --platform copilot --setup
 
-# Cursor → .cursor/skills/ + .cursor/rules/context-engineering-skills-index.mdc
-npx context-management-for-agents --platform cursor
+# Cursor → .cursor/skills/context-engineering/ + .cursor/rules/context-engineering-skills-index.mdc
+npx context-management-for-agents --platform cursor --setup
 
-# Amazon Kiro → .kiro/skills/ + .kiro/steering/context-engineering-skills-index.md
-npx context-management-for-agents --platform kiro
+# Claude Code → .claude/skills/context-engineering/ + index
+npx context-management-for-agents --platform claude --setup
 
-# Google Antigravity → .agents/skills/ + AGENTS.md index
-npx context-management-for-agents --platform antigravity
+# Amazon Kiro → .kiro/skills/context-engineering/ + .kiro/steering/context-engineering-skills-index.md
+npx context-management-for-agents --platform kiro --setup
 
-# Amazon Q Developer → .amazonq/skills/ + .amazonq/rules/context-engineering-skills-index.md
-npx context-management-for-agents --platform amazonq
+# Google Antigravity → .agents/skills/context-engineering/ + AGENTS.md index
+npx context-management-for-agents --platform antigravity --setup
+
+# Amazon Q Developer → .amazonq/skills/context-engineering/ + .amazonq/rules/context-engineering-skills-index.md
+npx context-management-for-agents --platform amazonq --setup
 
 # Copilot CLI global install
-npx context-management-for-agents --platform copilot --global
+npx context-management-for-agents --platform copilot --global --setup
 
 # Raw copy to custom directory (no index generated)
 npx context-management-for-agents --path ./my-skills-folder
 ```
+
+Skills install under a **`context-engineering/`** namespace so they coexist with other packs (e.g. [GStack](https://github.com/garrytan/gstack) at `gstack/`). See [docs/using-with-gstack.md](docs/using-with-gstack.md).
 
 **Git clone:**
 

@@ -23,6 +23,7 @@ Do not activate this skill for adjacent work owned by other skills:
 - Deciding whether the project should use LLMs at all, or what the pipeline stages should be: `project-development`.
 - Deciding whether to split work across sub-agents or run a single agent with more tools: `multi-agent-patterns`.
 - Reducing the token weight of tool outputs at the trajectory level: `context-optimization`.
+- Headless browser automation for QA or scraping: GStack `/browse` — centralize Chromium there; do not embed puppeteer per tool (see GStack ETHOS).
 
 ## Core Concepts
 

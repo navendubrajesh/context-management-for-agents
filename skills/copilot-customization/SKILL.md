@@ -67,6 +67,10 @@ The Copilot coding agent (cloud, asynchronous) reads `AGENTS.md` at the repo roo
 
 Agent mode loads tool definitions from every enabled MCP server into the context of each request. Tool schemas are token-expensive (JSON Schema inflates ~5x over compact representations — see `tool-design`). Enable only the servers the current work needs; an unused MCP server is pure context tax and a distraction risk for tool selection.
 
+### Co-installation with workflow skill packs
+
+If the team uses GStack or similar workflow harnesses alongside context engineering skills, namespace installs: context skills under `.github/skills/context-engineering/` (this collection's installer). Keep workflow skills in their own directory. Reference both in `copilot-instructions.md` with clear ownership — workflow for ship/QA, context for compression/masking — but do not paste full skill bodies into instructions.
+
 ## Authoring Playbook
 
 1. **Start from failures, not aspirations.** Add an instruction only after observing Copilot do the wrong thing without it. Speculative instructions accumulate into bloat that buries the rules that matter.

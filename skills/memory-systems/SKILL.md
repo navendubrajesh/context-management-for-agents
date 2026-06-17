@@ -21,6 +21,7 @@ Do not activate this skill for adjacent work owned by other skills:
 - Compressing conversation history into handoff summaries: `context-compression`.
 - Sharing state between agents in multi-agent systems: `multi-agent-patterns`.
 - Designing hosted runtime environments for persistent agents: `hosted-agents`.
+- Operational session learnings logged automatically: GStack `/learn` and `~/.gstack/projects/*/learnings.jsonl` — use for *tactical* fixes; this skill designs durable memory *architecture*.
 
 ## Core Concepts
 

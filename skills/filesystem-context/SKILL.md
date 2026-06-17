@@ -22,6 +22,7 @@ Do not activate this skill for adjacent work owned by other skills:
 - Compressing conversation history into summaries: `context-compression`.
 - Building hosted sandbox environments: `hosted-agents`.
 - Diagnosing context degradation in loaded content: `context-degradation`.
+- Storing QA artifacts or design outputs from workflow skills: prefer GStack artifact paths or project `.scratch/` — this skill owns *reference* patterns, not release workflow storage.
 
 ## Core Concepts
 

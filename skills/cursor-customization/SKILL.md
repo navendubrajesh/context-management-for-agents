@@ -49,6 +49,14 @@ For simpler projects, root or nested `AGENTS.md` files provide plain-markdown in
 
 Each enabled MCP server injects tool definitions into Agent context. Disable servers not needed for the current work — schema bloat competes with code context (see `tool-design`).
 
+### Co-installation with GStack (workflow skills)
+
+GStack installs workflow skills under `.cursor/skills/gstack/` (`/ship`, `/qa`, `/browse`, …). Context engineering skills install under `.cursor/skills/context-engineering/` via `npx context-management-for-agents --platform cursor --setup`.
+
+- Keep **two MCP servers** when needed: GStack browse + context-skills runtime — but disable unused tools per task.
+- Index rule (`context-engineering-skills-index.mdc`) should state: workflow skills own release/QA; context skills own window discipline.
+- Do not merge both skill indexes into one always-on rule — token budget explodes.
+
 ### What rules do not affect
 
 Project/User Rules apply to **Agent (Chat) only** — not Cursor Tab, not Inline Edit (Cmd/Ctrl+K). Style rules here won't reshape inline completions.

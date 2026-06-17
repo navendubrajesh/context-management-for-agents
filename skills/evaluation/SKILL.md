@@ -20,6 +20,7 @@ Do not activate this skill for adjacent work owned by other skills:
 - LLM-as-judge scoring, pairwise comparison, and rubric generation: `advanced-evaluation`.
 - Designing agent operating loops with evaluation gates: `harness-engineering`.
 - Choosing project pipeline architecture: `project-development`.
+- Browser-based regression QA with fix loops: GStack `/qa`, `/qa-only` — those execute tests in Chromium; this skill designs eval *suites* and metrics.
 
 ## Core Concepts
 
