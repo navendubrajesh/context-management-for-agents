@@ -1,5 +1,7 @@
 # Context Management for Agents
 
+![Demo](../assets/demo.gif)
+
 **28 Agent Skills** and a **callable runtime** (MCP, REST, SDKs) for context engineering across GitHub Copilot, Cursor, Kiro, Antigravity, and Amazon Q.
 
 ## Why this project

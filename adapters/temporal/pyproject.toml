@@ -1,0 +1,20 @@
+[project]
+name = "context-adapters-temporal"
+version = "3.0.0"
+description = "Temporal activities for context-skills primitives"
+requires-python = ">=3.11"
+dependencies = [
+  "context-skills-core",
+  "context-skills-sdk",
+]
+
+[project.optional-dependencies]
+temporal = ["temporalio>=1.7.0"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["context_adapters_temporal*"]

@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from context_skills.constants import EXPECTED_SKILLS
+from context_skills.freshness import freshness_metadata
 from context_skills.paths import find_repo_root, skills_dir
 
 _FRONTMATTER_RE = re.compile(r"^---\s*\n(.*?)\n---\s*\n?", re.DOTALL | re.MULTILINE)
@@ -19,9 +20,20 @@ class SkillSummary:
 
     name: str
     description: str
+    last_reviewed: str | None = None
+    freshness_days: int | None = None
+    volatile: bool = False
+    stale: bool = False
 
-    def to_dict(self) -> dict[str, str]:
-        return {"name": self.name, "description": self.description}
+    def to_dict(self) -> dict[str, str | bool | int | None]:
+        return {
+            "name": self.name,
+            "description": self.description,
+            "last_reviewed": self.last_reviewed,
+            "freshness_days": self.freshness_days,
+            "volatile": self.volatile,
+            "stale": self.stale,
+        }
 
 
 @dataclass(frozen=True)
@@ -84,12 +96,24 @@ def _iter_skill_dirs(root: Path | str | None = None) -> list[Path]:
     return [base / name for name in skill_names]
 
 
-def list_skills(repo_root: Path | str | None = None) -> list[dict[str, str]]:
-    """Return name + description for every skill (cheap index)."""
+def list_skills(repo_root: Path | str | None = None) -> list[dict[str, str | bool | int | None]]:
+    """Return name + description + freshness for every skill (cheap index)."""
     summaries: list[SkillSummary] = []
     for skill_dir in _iter_skill_dirs(repo_root):
+        content = (skill_dir / "SKILL.md").read_text(encoding="utf-8")
+        frontmatter, _ = _parse_frontmatter(content)
         detail = _read_skill_file(skill_dir / "SKILL.md")
-        summaries.append(SkillSummary(name=detail.name, description=detail.description))
+        meta = freshness_metadata(frontmatter)
+        summaries.append(
+            SkillSummary(
+                name=detail.name,
+                description=detail.description,
+                last_reviewed=meta["last_reviewed"],
+                freshness_days=meta["freshness_days"],
+                volatile=bool(meta["volatile"]),
+                stale=bool(meta["stale"]),
+            )
+        )
     return [item.to_dict() for item in summaries]
 
 

@@ -1,0 +1,26 @@
+Context Skills platform has been deployed.
+
+Release: {{ .Release.Name }}
+Namespace: {{ .Release.Namespace }}
+
+API service:
+  {{ include "context-skills.fullname" . }}-api:{{ .Values.service.port }}
+
+{{- if .Values.ingress.enabled }}
+Ingress host:
+  https://{{ .Values.ingress.host }}/
+{{- else }}
+Port-forward:
+  kubectl port-forward svc/{{ include "context-skills.fullname" . }}-api 8080:{{ .Values.service.port }}
+{{- end }}
+
+{{- if .Values.opa.enabled }}
+OPA policy engine:
+  {{ .Values.opa.url }}
+{{- end }}
+
+Auth mode: {{ .Values.auth.mode }}
+Region pin: {{ .Values.region }}
+
+Health check:
+  curl http://localhost:8080/healthz

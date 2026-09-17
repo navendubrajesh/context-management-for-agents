@@ -1,4 +1,35 @@
 :root { font-family: system-ui, sans-serif; color: #1a1a1a; background: #f6f8fa; }
+.stale-badge {
+  background: #c0392b;
+  color: #fff;
+  font-size: 0.75rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  margin-left: 0.5rem;
+}
+
+.stale-skill {
+  opacity: 0.85;
+  border-left: 3px solid #c0392b;
+  padding-left: 0.5rem;
+}
+
+#chargeback-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+#chargeback-table th,
+#chargeback-table td {
+  border: 1px solid #ccc;
+  padding: 0.4rem 0.6rem;
+}
+
+.hidden {
+  display: none;
+}
+
 body { max-width: 960px; margin: 0 auto; padding: 1rem; }
 header { border-bottom: 1px solid #ddd; margin-bottom: 1rem; }
 nav button { margin-right: 0.5rem; padding: 0.4rem 0.8rem; cursor: pointer; }

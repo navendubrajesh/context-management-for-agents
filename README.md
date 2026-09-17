@@ -1,6 +1,6 @@
 # Context Management for Agents
 
-<!-- DEMO_GIF: replace with assets/demo.gif after recording (see below) -->
+![Demo](assets/demo.gif)
 
 [![CI](https://github.com/navendubrajesh/context-management-for-agents/actions/workflows/ci.yml/badge.svg)](https://github.com/navendubrajesh/context-management-for-agents/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -42,10 +42,14 @@ Full docs: [navendubrajesh.github.io/context-management-for-agents](https://nave
 
 ### Recording the demo GIF
 
-1. Run `python examples/demo/run_demo.py` in a terminal (80×24 or wider).
-2. Capture ~15s showing router output + token before/after lines (Windows: Xbox Game Bar / ShareX; macOS: Cmd+Shift+5).
-3. Save as `assets/demo.gif` (optimize with ezgif.com if needed).
-4. Replace the `<!-- DEMO_GIF -->` comment above with: `![Demo](assets/demo.gif)`
+Regenerate after demo changes:
+
+```bash
+pip install pillow
+python scripts/record_demo_gif.py
+```
+
+This runs `examples/demo/run_demo.py` and writes `assets/demo.gif` for the README and docs site.
 
 Measured savings in the demo use **this repo's test fixtures** (not theoretical). See [Context Window Savings](#context-window-savings-measured).
 

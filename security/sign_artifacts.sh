@@ -1,13 +1,18 @@
 #!/usr/bin/env bash
-# Sign release artifacts with cosign (keyless or key file).
+# Sign release artifacts (cosign bundle or SHA256 checksum).
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 ARTIFACT="${1:-${ROOT}/security/sbom/runtime.cdx.json}"
-if command -v cosign >/dev/null 2>&1; then
-  cosign sign-blob --yes "$ARTIFACT" --bundle "${ARTIFACT}.sigstore.json" 2>/dev/null || \
-    sha256sum "$ARTIFACT" | awk '{print $1}' > "${ARTIFACT}.sha256"
-  echo "Signature bundle: ${ARTIFACT}.sigstore.json (or .sha256 fallback)"
-else
-  sha256sum "$ARTIFACT" | awk '{print $1}' > "${ARTIFACT}.sha256"
-  echo "cosign not found — wrote SHA256 checksum only"
-fi
+
+python -c "
+import sys
+from pathlib import Path
+sys.path.insert(0, '${ROOT}')
+from security.signing import sign_artifact
+result = sign_artifact(Path('${ARTIFACT}'), prefer_cosign=True)
+print(f\"Signed {result['artifact']} via {result['method']}\")
+if result.get('signature'):
+    print(f\"  SHA256: {result['signature']}\")
+if result.get('bundle'):
+    print(f\"  Bundle: {result['bundle']}\")
+"

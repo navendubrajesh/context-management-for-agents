@@ -1,0 +1,71 @@
+{{- if and .Values.opa.enabled (not .Values.opa.sidecar) -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "context-skills.fullname" . }}-opa
+  labels:
+    {{- include "context-skills.labels" . | nindent 4 }}
+    component: opa
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "context-skills.labels" . | nindent 6 }}
+      component: opa
+  template:
+    metadata:
+      labels:
+        {{- include "context-skills.labels" . | nindent 8 }}
+        component: opa
+    spec:
+      containers:
+        - name: opa
+          image: "{{ .Values.opa.image.repository }}:{{ .Values.opa.image.tag }}"
+          args:
+            - run
+            - --server
+            - --addr=0.0.0.0:8181
+            - /policies/contextskills.rego
+          ports:
+            - name: http
+              containerPort: 8181
+          volumeMounts:
+            - name: opa-policy
+              mountPath: /policies
+              readOnly: true
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8181
+          readinessProbe:
+            httpGet:
+              path: /health?bundle=true
+              port: 8181
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+      volumes:
+        - name: opa-policy
+          configMap:
+            name: {{ include "context-skills.fullname" . }}-opa-policy
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: context-skills-opa
+  labels:
+    {{- include "context-skills.labels" . | nindent 4 }}
+    component: opa
+spec:
+  selector:
+    {{- include "context-skills.labels" . | nindent 4 }}
+    component: opa
+  ports:
+    - name: http
+      port: 8181
+      targetPort: http
+{{- end }}

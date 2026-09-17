@@ -14,9 +14,11 @@ except ImportError:
 try:
     from context_policy.approvals import get_approval_store
     from context_policy.engine import evaluate_opa
+    from context_policy.tenant_config import enrich_policy_payload
 except ImportError:
     evaluate_opa = None
     get_approval_store = None
+    enrich_policy_payload = None
 
 
 def evaluate_policy(operation: str, context: dict[str, Any] | None = None) -> bool:
@@ -32,18 +34,19 @@ def evaluate_policy(operation: str, context: dict[str, Any] | None = None) -> bo
     if evaluate_opa is None:
         return rbac_allowed
 
-    decision = evaluate_opa(
-        {
-            "operation": operation,
-            "tenant_id": principal.tenant_id,
-            "roles": list(principal.roles),
-            "rbac_allowed": rbac_allowed,
-            "skill": context.get("skill", ""),
-            "model": context.get("model", ""),
-            "denied_skills": context.get("denied_skills", []),
-            "denied_models": context.get("denied_models", []),
-        }
-    )
+    payload = {
+        "operation": operation,
+        "tenant_id": principal.tenant_id,
+        "roles": list(principal.roles),
+        "rbac_allowed": rbac_allowed,
+        "skill": context.get("skill", ""),
+        "model": context.get("model", ""),
+        "denied_skills": context.get("denied_skills", []),
+        "denied_models": context.get("denied_models", []),
+    }
+    if enrich_policy_payload is not None:
+        payload = enrich_policy_payload(payload)
+    decision = evaluate_opa(payload)
     if not decision.allowed:
         return False
     if decision.requires_approval:

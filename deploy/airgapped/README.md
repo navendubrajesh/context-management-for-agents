@@ -25,6 +25,12 @@ Offline bundle for on-prem deployments without outbound network access.
 - OIDC: HMAC secret for local IdP JWTs
 - Vault: `CONTEXT_SKILLS_VAULT_TYPE=file`
 
-## Region pinning
+## Region pinning (CM-070)
 
-Set `CONTEXT_SKILLS_REGION` and disable external telemetry exporters.
+| Deployment mode | Region required | External telemetry | Notes |
+|-----------------|-----------------|--------------------|-------|
+| `standard` | Optional | Allowed when OTEL configured | Default SaaS / dev |
+| `regulated` | Required (`requireRegion: true`) | Allowed with review | Set `CONTEXT_SKILLS_REQUIRE_REGION=true` |
+| `air-gapped` | Required | Blocked | Sets `CONTEXT_SKILLS_BLOCK_EXTERNAL_TELEMETRY=true` |
+
+Helm: `deploymentMode`, `region`, and `requireRegion` in `values.yaml`. Terraform customer-VPC module enforces region pin at plan time.

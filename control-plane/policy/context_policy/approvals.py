@@ -8,7 +8,20 @@ from datetime import datetime, timezone
 from threading import Lock
 from typing import Any, Literal
 
+try:
+    from context_storage.database import is_database_enabled
+    from context_storage.repositories import ApprovalRepository
+except ImportError:
+    is_database_enabled = lambda: False  # noqa: E731
+    ApprovalRepository = None
+
 ApprovalStatus = Literal["pending", "approved", "rejected"]
+
+
+def _approval_repo() -> ApprovalRepository | None:
+    if not is_database_enabled() or ApprovalRepository is None:
+        return None
+    return ApprovalRepository()
 
 
 @dataclass
@@ -56,6 +69,9 @@ class ApprovalStore:
         )
         with self._lock:
             self._items[req.id] = req
+        repo = _approval_repo()
+        if repo is not None:
+            repo.save(req.to_dict())
         return req
 
     def list_pending(self, tenant_id: str | None = None) -> list[ApprovalRequest]:
@@ -76,6 +92,9 @@ class ApprovalStore:
             req.decided_by = approver
             req.decided_at = datetime.now(timezone.utc).isoformat()
             req.reason = reason or None
+            repo = _approval_repo()
+            if repo is not None:
+                repo.save(req.to_dict())
             return req
 
     def get(self, approval_id: str) -> ApprovalRequest | None:

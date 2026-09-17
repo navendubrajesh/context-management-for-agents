@@ -9,7 +9,18 @@ from context_iam.identity import Principal
 from context_iam.rbac import authorize_operation
 
 
-PUBLIC_PATHS = frozenset({"/healthz", "/docs", "/openapi.json", "/redoc"})
+PUBLIC_PATHS = frozenset({
+    "/healthz",
+    "/docs",
+    "/openapi.json",
+    "/redoc",
+    "/auth/saml/metadata",
+    "/auth/saml/acs",
+    "/policy/version",
+    "/console/auth/login",
+    "/console/auth/callback",
+    "/residency/status",
+})
 
 
 def resolve_principal(request: Request) -> Principal:

@@ -23,11 +23,13 @@ jobs:
           pip install -e control-plane/policy
           pip install -e control-plane/audit
           pip install -e control-plane/finops
+          pip install -e control-plane/marketplace
+          pip install -e control-plane/storage
           pip install -e runtime/core
           pip install -e runtime/api
           pip install -e runtime/mcp
           pip install -e runtime/sdk-python
-          pip install pytest httpx fastapi uvicorn tiktoken pyjwt[crypto] mcp
+          pip install pytest httpx fastapi uvicorn tiktoken pyjwt[crypto] mcp pyyaml python-multipart sqlalchemy
 
       - name: Four validation gates
         run: |
@@ -36,9 +38,97 @@ jobs:
           python researcher/scripts/run_benchmarks.py
           python researcher/scripts/check_activation_cases.py
 
+      - name: IAM SAML tests (CM-033)
+        run: python -m pytest control-plane/iam/tests/ -q
+
+      - name: Policy engine + bundle tests (CM-038)
+        run: python -m pytest control-plane/policy/tests/ -q
+
+      - name: Postgres persistence tests (CM-065)
+        run: python -m pytest control-plane/storage/tests/ -q
+
+      - name: LangGraph adapter tests (CM-401)
+        run: |
+          pip install -e adapters/langgraph -e runtime/sdk-python
+          python -m pytest adapters/langgraph/tests/ -q
+
+      - name: CrewAI adapter tests (CM-402)
+        run: |
+          pip install -e adapters/crewai -e runtime/sdk-python
+          python -m pytest adapters/crewai/tests/ -q
+
+      - name: Temporal adapter tests (CM-403)
+        run: |
+          pip install -e adapters/temporal -e runtime/sdk-python
+          python -m pytest adapters/temporal/tests/ -q
+
+      - name: Policy rollout tests (CM-039)
+        run: python -m pytest control-plane/policy/tests/test_rollout.py -q
+
+      - name: Runnable examples (CM-606)
+        run: python -m pytest runtime/tests/test_examples_cm606.py -q
+
+      - name: Eval pipeline tests (CM-404/405)
+        run: python -m pytest researcher/eval/tests/ -q
+
+      - name: Claim drift detection (CM-406)
+        run: python researcher/scripts/check_claim_drift.py --strict
+
       - name: Runtime tests
         working-directory: runtime
         run: python -m pytest tests/ -q
+
+      - name: Supply chain — SBOM (CM-050)
+        run: |
+          python security/sbom_generator.py --strict
+          test "$(python -c "import json;print(len(json.load(open('security/sbom/runtime.cdx.json'))['components']))")" -gt 0
+
+      - name: Supply chain — sign & verify (CM-052)
+        run: |
+          python -c "
+          import sys
+          from pathlib import Path
+          sys.path.insert(0, '.')
+          from security.signing import sign_artifact, verify_artifact
+          sbom = Path('security/sbom/runtime.cdx.json')
+          sign_artifact(sbom, prefer_cosign=False)
+          assert verify_artifact(sbom)
+          "
+
+      - name: Supply chain — vulnerability scan (CM-051)
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
+          python security/vuln_scan.py --strict
+
+      - name: Helm chart lint (CM-061/062)
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+          helm lint deploy/helm/context-skills
+          helm template context-skills-test deploy/helm/context-skills | grep -E 'kind: (Deployment|Service|Ingress|HorizontalPodAutoscaler)'
+          helm template context-skills-test deploy/helm/context-skills | grep -E 'name: opa'
+          helm template context-skills-test deploy/helm/context-skills --set otel.enabled=true --set otel.sidecar=true | grep -E 'otel-collector'
+
+      - name: Terraform validate (CM-064/066/067)
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.0
+
+      - name: Run terraform validate modules
+        run: |
+          for dir in deploy/terraform/modules/context-skills deploy/terraform/modules/saas deploy/terraform/modules/customer-vpc; do
+            terraform -chdir="$dir" init -backend=false -input=false
+            terraform -chdir="$dir" validate
+          done
+
+      - name: Air-gap bundle build (CM-068)
+        run: bash deploy/airgapped/scripts/build_bundle.sh
+
+      - name: Air-gap install validation (CM-069)
+        run: |
+          bash deploy/airgapped/scripts/install.sh --dry-run
+          uvicorn app:app --app-dir runtime/api --host 127.0.0.1 --port 8080 &
+          sleep 3
+          curl -sf http://127.0.0.1:8080/healthz
 
       - name: Skills catalog drift check
         run: python docs/scripts/check_skills_catalog.py
@@ -47,6 +137,15 @@ jobs:
         run: |
           python examples/demo/run_demo.py
           python examples/demo/run_mcp_demo.py
+
+      - name: Demo GIF asset (CM-607)
+        run: |
+          pip install pillow
+          python scripts/record_demo_gif.py
+          test -f assets/demo.gif
+
+      - name: Quota alerts + tenant admin tests (CM-045/058)
+        run: python -m pytest runtime/tests/test_cm045_058_607.py -q
 
       - name: Docs build
         run: |

@@ -1,0 +1,20 @@
+[project]
+name = "context-adapters-crewai"
+version = "3.0.0"
+description = "CrewAI tools for context-skills platform"
+requires-python = ">=3.11"
+dependencies = [
+  "context-skills-core",
+  "context-skills-sdk",
+]
+
+[project.optional-dependencies]
+crewai = ["crewai>=0.30.0"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["context_adapters_crewai*"]

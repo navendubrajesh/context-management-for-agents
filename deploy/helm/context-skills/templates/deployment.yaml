@@ -1,41 +1,96 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: context-skills-api
+  name: {{ include "context-skills.fullname" . }}-api
+  labels:
+    {{- include "context-skills.labels" . | nindent 4 }}
 spec:
+  {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
+  {{- end }}
   selector:
     matchLabels:
-      app: context-skills-api
+      {{- include "context-skills.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        app: context-skills-api
+        {{- include "context-skills.selectorLabels" . | nindent 8 }}
     spec:
+      serviceAccountName: {{ include "context-skills.serviceAccountName" . }}
+      {{- if and .Values.opa.enabled .Values.opa.sidecar }}
+      volumes:
+        - name: opa-policy
+          configMap:
+            name: {{ include "context-skills.fullname" . }}-opa-policy
+      {{- end }}
       containers:
         - name: api
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            - containerPort: 8080
-          env:
-            - name: CONTEXT_SKILLS_AUTH_MODE
-              value: {{ .Values.auth.mode | quote }}
-            - name: CONTEXT_SKILLS_REGION
-              value: {{ .Values.region | quote }}
-            - name: CONTEXT_SKILLS_OPA_URL
-              value: {{ .Values.opa.url | quote }}
+            - name: http
+              containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: {{ include "context-skills.fullname" . }}-config
+            - secretRef:
+                name: {{ include "context-skills.fullname" . }}-secret
           livenessProbe:
             httpGet:
               path: {{ .Values.probes.liveness }}
-              port: 8080
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 3
+            failureThreshold: 3
           readinessProbe:
             httpGet:
               path: {{ .Values.probes.readiness }}
-              port: 8080
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
           resources:
-            requests:
-              cpu: 100m
-              memory: 256Mi
-            limits:
-              cpu: 500m
-              memory: 512Mi
+            {{- toYaml .Values.resources | nindent 12 }}
+        {{- if and .Values.opa.enabled .Values.opa.sidecar }}
+        - name: opa
+          image: "{{ .Values.opa.image.repository }}:{{ .Values.opa.image.tag }}"
+          args:
+            - run
+            - --server
+            - --addr=0.0.0.0:8181
+            - /policies/contextskills.rego
+          ports:
+            - name: opa-http
+              containerPort: 8181
+          volumeMounts:
+            - name: opa-policy
+              mountPath: /policies
+              readOnly: true
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: opa-http
+            initialDelaySeconds: 5
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /health?bundle=true
+              port: opa-http
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.opaResources | nindent 12 }}
+        {{- end }}
+        {{- if and .Values.otel.enabled .Values.otel.sidecar }}
+        - name: otel-collector
+          image: {{ .Values.otel.collectorImage | quote }}
+          args: ["--config=/etc/otel/config.yaml"]
+          ports:
+            - name: otlp-http
+              containerPort: 4318
+          env:
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: {{ .Values.otel.endpoint | quote }}
+        {{- end }}

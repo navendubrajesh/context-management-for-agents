@@ -1,0 +1,9 @@
+{
+  "name": "context-skills-airgap-bundle",
+  "version": "3.0.0",
+  "contents": [
+    "wheels/",
+    "sbom/",
+    "signatures/"
+  ]
+}

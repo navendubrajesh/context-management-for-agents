@@ -65,4 +65,13 @@ def decide_approval(
         raise HTTPException(status_code=409, detail=str(exc)) from exc
     if req.tenant_id != principal.tenant_id and "admin" not in principal.roles:
         raise HTTPException(status_code=403, detail="Cross-tenant approval denied")
+    if body.approve and req.operation == "marketplace:publish":
+        try:
+            from context_marketplace.store import get_marketplace_store
+
+            entry = get_marketplace_store().find_by_approval(req.id)
+            if entry is not None:
+                get_marketplace_store().approve(entry.id)
+        except ImportError:
+            pass
     return req.to_dict()

@@ -9,18 +9,22 @@
 <body>
   <header>
     <h1>Context Skills Console</h1>
-    <p>Thin control-plane UI over REST APIs — auth via SSO (Bearer token).</p>
+    <p>OIDC SSO, FinOps chargeback, approvals, and efficiency metrics.</p>
   </header>
   <nav>
     <button data-panel="catalog">Skill Catalog</button>
     <button data-panel="usage">Usage &amp; Cost</button>
+    <button data-panel="efficiency">Efficiency</button>
     <button data-panel="audit">Audit Log</button>
     <button data-panel="approvals">Approvals</button>
     <button data-panel="tenants">Tenants</button>
+    <button data-panel="tenant-admin">Tenant Admin</button>
   </nav>
   <section id="auth">
-    <label>Bearer token <input id="token" type="password" placeholder="Paste OIDC JWT" /></label>
-    <button id="save-token">Save</button>
+    <button id="sso-login">Sign in with SSO</button>
+    <button id="sso-logout" class="hidden">Sign out</button>
+    <label class="fallback">Or paste token <input id="token" type="password" placeholder="Bearer JWT" /></label>
+    <button id="save-token">Save token</button>
   </section>
   <main id="panel-catalog" class="panel">
     <h2>Skill Catalog</h2>
@@ -28,24 +32,52 @@
     <ul id="skill-list"></ul>
   </main>
   <main id="panel-usage" class="panel hidden">
-    <h2>Usage (estimated)</h2>
-    <button id="load-usage">Load chargeback</button>
-    <pre id="usage-out"></pre>
+    <h2>Chargeback</h2>
+    <label>From <input id="chargeback-from" type="date" /></label>
+    <label>To <input id="chargeback-to" type="date" /></label>
+    <button id="load-usage">Load</button>
+    <button id="export-csv">Export CSV</button>
+    <table id="chargeback-table"><thead><tr><th>Tenant</th><th>Ops</th><th>Saved</th><th>Est. USD</th></tr></thead><tbody></tbody></table>
+  </main>
+  <main id="panel-efficiency" class="panel hidden">
+    <h2>Context Efficiency</h2>
+    <button id="load-efficiency">Load metrics</button>
+    <div id="efficiency-summary"></div>
   </main>
   <main id="panel-audit" class="panel hidden">
-    <h2>Audit Events</h2>
+    <h2>Audit Log</h2>
     <button id="load-audit">Load</button>
     <pre id="audit-out"></pre>
   </main>
   <main id="panel-approvals" class="panel hidden">
-    <h2>Approval Queue</h2>
-    <button id="load-approvals">Load pending</button>
+    <h2>Approval Workflow</h2>
+    <form id="approval-form">
+      <input id="approval-operation" placeholder="operation e.g. skills:publish" required />
+      <input id="approval-skill" placeholder="skill name" />
+      <button type="submit">Create request</button>
+    </form>
+    <button id="load-approvals">Refresh queue</button>
     <ul id="approval-list"></ul>
   </main>
   <main id="panel-tenants" class="panel hidden">
     <h2>Tenants</h2>
     <button id="load-tenants">Load</button>
     <pre id="tenants-out"></pre>
+  </main>
+  <main id="panel-tenant-admin" class="panel hidden">
+    <h2>Tenant Self-Service</h2>
+    <button id="load-tenant-admin">Load overview</button>
+    <div id="tenant-admin-quota"></div>
+    <h3>Enabled skills</h3>
+    <textarea id="tenant-skills" rows="4" placeholder="comma-separated skill names"></textarea>
+    <button id="save-tenant-skills">Save skills</button>
+    <h3>Invite user</h3>
+    <form id="invite-form">
+      <input id="invite-email" type="email" placeholder="user@example.com" required />
+      <input id="invite-name" placeholder="Display name" />
+      <button type="submit">Invite</button>
+    </form>
+    <ul id="tenant-users"></ul>
   </main>
   <script src="/console/app.js"></script>
 </body>

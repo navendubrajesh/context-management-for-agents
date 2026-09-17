@@ -42,9 +42,26 @@ class QuotaStore:
         with self._lock:
             return self._quotas.get(tenant_id)
 
+    def usage_snapshot(self, tenant_id: str) -> tuple[int, int]:
+        quota = self.get(tenant_id)
+        with self._lock:
+            used = self._token_usage.get(tenant_id, 0)
+        limit = quota.token_limit if quota else 0
+        return used, limit
+
     def record_tokens(self, tenant_id: str, tokens: int) -> None:
         with self._lock:
             self._token_usage[tenant_id] = self._token_usage.get(tenant_id, 0) + tokens
+        self._maybe_quota_alert(tenant_id)
+
+    def _maybe_quota_alert(self, tenant_id: str) -> None:
+        try:
+            from context_finops.quota_alerts import get_quota_alert_store
+        except ImportError:
+            return
+        used, limit = self.usage_snapshot(tenant_id)
+        if limit > 0:
+            get_quota_alert_store().evaluate(tenant_id, tokens_used=used, token_limit=limit)
 
     def record_request(self, tenant_id: str) -> None:
         now = time.time()
@@ -73,6 +90,12 @@ class QuotaStore:
         with self._lock:
             self._token_usage.clear()
             self._request_windows.clear()
+        try:
+            from context_finops.quota_alerts import get_quota_alert_store
+
+            get_quota_alert_store().reset_fired()
+        except ImportError:
+            pass
 
 
 _GLOBAL = QuotaStore()

@@ -1,0 +1,5 @@
+{
+  "schema_version": 1,
+  "description": "CVEs allowlisted for context-skills supply-chain scans. Remove entries when patched.",
+  "entries": []
+}

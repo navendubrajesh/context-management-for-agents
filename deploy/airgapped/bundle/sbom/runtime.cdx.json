@@ -1,0 +1,191 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.4",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-09-17T10:31:51.539769+00:00",
+    "component": {
+      "type": "application",
+      "name": "context-skills-platform",
+      "version": "3.0.0"
+    },
+    "tools": [
+      {
+        "name": "context-skills-sbom-generator",
+        "version": "1.0.0"
+      }
+    ]
+  },
+  "components": [
+    {
+      "type": "library",
+      "name": "code_generation_harness",
+      "version": "1.0.0",
+      "purl": "pkg:pypi/code_generation_harness@1.0.0",
+      "properties": [
+        {
+          "name": "source-path",
+          "value": "examples/code-generation-harness"
+        }
+      ]
+    },
+    {
+      "type": "application",
+      "name": "context-audit",
+      "version": "3.0.0",
+      "properties": [
+        {
+          "name": "source-path",
+          "value": "control-plane/audit"
+        }
+      ]
+    },
+    {
+      "type": "application",
+      "name": "context-finops",
+      "version": "3.0.0",
+      "properties": [
+        {
+          "name": "source-path",
+          "value": "control-plane/finops"
+        }
+      ]
+    },
+    {
+      "type": "application",
+      "name": "context-iam",
+      "version": "3.0.0",
+      "properties": [
+        {
+          "name": "source-path",
+          "value": "control-plane/iam"
+        }
+      ]
+    },
+    {
+      "type": "application",
+      "name": "context-policy",
+      "version": "3.0.0",
+      "properties": [
+        {
+          "name": "source-path",
+          "value": "control-plane/policy"
+        }
+      ]
+    },
+    {
+      "type": "application",
+      "name": "context-skills-api",
+      "version": "3.0.0",
+      "properties": [
+        {
+          "name": "source-path",
+          "value": "runtime/api"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "context-skills-core",
+      "version": "1.0.0",
+      "purl": "pkg:pypi/context-skills-core@1.0.0",
+      "properties": [
+        {
+          "name": "source-path",
+          "value": "runtime/core"
+        }
+      ]
+    },
+    {
+      "type": "application",
+      "name": "context-skills-mcp",
+      "version": "3.0.0",
+      "properties": [
+        {
+          "name": "source-path",
+          "value": "runtime/mcp"
+        }
+      ]
+    },
+    {
+      "type": "application",
+      "name": "context-skills-runtime",
+      "version": "3.0.0",
+      "properties": [
+        {
+          "name": "source-path",
+          "value": "runtime"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "context-skills-runtime-dev",
+      "version": "1.0.0",
+      "purl": "pkg:pypi/context-skills-runtime-dev@1.0.0",
+      "properties": [
+        {
+          "name": "source-path",
+          "value": "runtime"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "context-skills-sdk",
+      "version": "1.0.0",
+      "purl": "pkg:pypi/context-skills-sdk@1.0.0",
+      "properties": [
+        {
+          "name": "source-path",
+          "value": "runtime/sdk-python"
+        }
+      ]
+    },
+    {
+      "type": "application",
+      "name": "context-skills-sdk-python",
+      "version": "3.0.0",
+      "properties": [
+        {
+          "name": "source-path",
+          "value": "runtime/sdk-python"
+        }
+      ]
+    },
+    {
+      "type": "application",
+      "name": "context-skills-sdk-ts",
+      "version": "3.0.0",
+      "properties": [
+        {
+          "name": "source-path",
+          "value": "runtime/sdk-ts"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "context-storage",
+      "version": "3.0.0",
+      "purl": "pkg:pypi/context-storage@3.0.0",
+      "properties": [
+        {
+          "name": "source-path",
+          "value": "control-plane/storage"
+        }
+      ]
+    },
+    {
+      "type": "application",
+      "name": "context-tenancy",
+      "version": "3.0.0",
+      "properties": [
+        {
+          "name": "source-path",
+          "value": "control-plane/tenancy"
+        }
+      ]
+    }
+  ]
+}

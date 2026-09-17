@@ -9,6 +9,19 @@ from pathlib import Path
 from threading import Lock
 from typing import Any
 
+try:
+    from context_storage.database import is_database_enabled
+    from context_storage.repositories import TenantRepository
+except ImportError:
+    is_database_enabled = lambda: False  # noqa: E731
+    TenantRepository = None
+
+
+def _tenant_repo() -> TenantRepository | None:
+    if not is_database_enabled() or TenantRepository is None:
+        return None
+    return TenantRepository()
+
 
 @dataclass
 class TenantConfig:
@@ -42,6 +55,13 @@ class TenantStore:
         self._seed_defaults()
 
     def _seed_defaults(self) -> None:
+        repo = _tenant_repo()
+        if repo is not None:
+            existing = repo.list_all()
+            if existing:
+                for item in existing:
+                    self._tenants[item["tenant_id"]] = TenantConfig(**item)
+                return
         self._tenants["default"] = TenantConfig(tenant_id="default", name="Default")
         self._tenants["tenant-a"] = TenantConfig(
             tenant_id="tenant-a",
@@ -59,6 +79,16 @@ class TenantStore:
             name="Tenant C",
             enabled_skills=["advanced-evaluation", "evaluation"],
         )
+        if repo is not None:
+            for cfg in self._tenants.values():
+                repo.upsert(
+                    cfg.tenant_id,
+                    cfg.name,
+                    cfg.enabled_skills,
+                    llm_provider=cfg.llm_provider,
+                    pricing_tier=cfg.pricing_tier,
+                    region=cfg.region,
+                )
 
     def load_from_file(self, path: Path | str) -> None:
         data = json.loads(Path(path).read_text(encoding="utf-8"))
@@ -84,6 +114,16 @@ class TenantStore:
     def upsert(self, config: TenantConfig) -> TenantConfig:
         with self._lock:
             self._tenants[config.tenant_id] = config
+        repo = _tenant_repo()
+        if repo is not None:
+            repo.upsert(
+                config.tenant_id,
+                config.name,
+                config.enabled_skills,
+                llm_provider=config.llm_provider,
+                pricing_tier=config.pricing_tier,
+                region=config.region,
+            )
         return config
 
     def filter_skills(self, tenant_id: str, skills: list[dict[str, str]]) -> list[dict[str, str]]:

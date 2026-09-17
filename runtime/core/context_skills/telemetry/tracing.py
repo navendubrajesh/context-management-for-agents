@@ -30,10 +30,24 @@ def init_telemetry(service_name: str = "context-skills-runtime") -> None:
     except ImportError:
         return
 
-    resource = Resource.create({"service.name": service_name})
+    from context_skills.residency import configured_region, telemetry_allowed
+
+    attrs = {"service.name": service_name}
+    region = configured_region()
+    if region:
+        attrs["deployment.region"] = region
+    resource = Resource.create(attrs)
     provider = TracerProvider(resource=resource)
+    otlp_endpoint = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT", "").strip()
     exporter = os.environ.get("OTEL_TRACES_EXPORTER", "console").lower()
-    if exporter == "console":
+    if otlp_endpoint and telemetry_allowed():
+        try:
+            from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+
+            provider.add_span_processor(BatchSpanProcessor(OTLPSpanExporter(endpoint=otlp_endpoint)))
+        except ImportError:
+            provider.add_span_processor(BatchSpanProcessor(ConsoleSpanExporter()))
+    elif exporter == "console":
         provider.add_span_processor(BatchSpanProcessor(ConsoleSpanExporter()))
     trace.set_tracer_provider(provider)
 

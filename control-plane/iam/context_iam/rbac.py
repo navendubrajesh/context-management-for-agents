@@ -17,16 +17,23 @@ class Permission(str, Enum):
     SCIM_MANAGE = "scim:manage"
     AUDIT_READ = "audit:read"
     APPROVALS_MANAGE = "approvals:manage"
+    EVAL_RUN = "eval:run"
+    EVAL_READ = "eval:read"
+    TENANT_SELF = "tenant:self"
 
 
 ROLE_PERMISSIONS: dict[str, frozenset[Permission]] = {
-    "viewer": frozenset({Permission.SKILLS_READ, Permission.USAGE_READ, Permission.AUDIT_READ}),
+    "viewer": frozenset(
+        {Permission.SKILLS_READ, Permission.USAGE_READ, Permission.AUDIT_READ, Permission.EVAL_READ}
+    ),
     "author": frozenset(
         {
             Permission.SKILLS_READ,
             Permission.SKILLS_PUBLISH,
             Permission.USAGE_READ,
             Permission.AUDIT_READ,
+            Permission.EVAL_RUN,
+            Permission.EVAL_READ,
         }
     ),
     "operator": frozenset(
@@ -35,9 +42,18 @@ ROLE_PERMISSIONS: dict[str, frozenset[Permission]] = {
             Permission.PRIMITIVES_RUN,
             Permission.USAGE_READ,
             Permission.AUDIT_READ,
+            Permission.EVAL_RUN,
+            Permission.EVAL_READ,
         }
     ),
     "admin": frozenset(Permission),
+    "tenant-admin": frozenset(
+        {
+            Permission.SKILLS_READ,
+            Permission.USAGE_READ,
+            Permission.TENANT_SELF,
+        }
+    ),
 }
 
 
@@ -72,6 +88,9 @@ OPERATION_PERMISSIONS: dict[str, Permission] = {
     "scim:manage": Permission.SCIM_MANAGE,
     "audit:read": Permission.AUDIT_READ,
     "approvals:manage": Permission.APPROVALS_MANAGE,
+    "eval:run": Permission.EVAL_RUN,
+    "eval:read": Permission.EVAL_READ,
+    "tenant:self": Permission.TENANT_SELF,
 }
 
 

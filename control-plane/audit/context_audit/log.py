@@ -10,6 +10,19 @@ from datetime import datetime, timezone
 from threading import Lock
 from typing import Any
 
+try:
+    from context_storage.database import is_database_enabled
+    from context_storage.repositories import AuditRepository
+except ImportError:
+    is_database_enabled = lambda: False  # noqa: E731
+    AuditRepository = None
+
+
+def _audit_repo() -> AuditRepository | None:
+    if not is_database_enabled() or AuditRepository is None:
+        return None
+    return AuditRepository()
+
 
 def _hash_payload(payload: str) -> str:
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
@@ -86,6 +99,9 @@ class AuditLog:
                 **body,
             )
             self._events.append(event)
+            repo = _audit_repo()
+            if repo is not None:
+                repo.append(event.to_dict())
             return event
 
     def events(self, tenant_id: str | None = None, limit: int = 100) -> list[AuditEvent]:

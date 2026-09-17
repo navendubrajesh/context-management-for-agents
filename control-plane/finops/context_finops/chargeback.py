@@ -6,11 +6,21 @@ from collections import defaultdict
 from typing import Any
 
 
-def chargeback_report(records: list[dict[str, Any]]) -> dict[str, Any]:
+def chargeback_report(
+    records: list[dict[str, Any]],
+    *,
+    date_from: str | None = None,
+    date_to: str | None = None,
+) -> dict[str, Any]:
     by_tenant: dict[str, dict[str, Any]] = defaultdict(
         lambda: {"tokens_before": 0, "tokens_after": 0, "est_cost_usd": 0.0, "operations": 0}
     )
     for rec in records:
+        ts = str(rec.get("timestamp") or rec.get("created_at") or "")
+        if date_from and ts and ts[:10] < date_from:
+            continue
+        if date_to and ts and ts[:10] > date_to:
+            continue
         tenant = rec.get("tenant_id") or "default"
         bucket = by_tenant[tenant]
         bucket["tokens_before"] += int(rec.get("tokens_before", 0))
@@ -31,4 +41,8 @@ def chargeback_report(records: list[dict[str, Any]]) -> dict[str, Any]:
                 "disclaimer": "estimated — operator-configured pricing",
             }
         )
-    return {"tenants": tenants, "disclaimer": "estimated — operator-configured pricing"}
+    return {
+        "tenants": tenants,
+        "period": {"from": date_from, "to": date_to},
+        "disclaimer": "estimated — operator-configured pricing",
+    }

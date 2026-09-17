@@ -19,6 +19,13 @@ from tenant_routes import router as tenant_router
 from approval_routes import router as approval_router
 from audit_routes import router as audit_router
 from finops_routes import router as finops_router
+from eval_routes import router as eval_router
+from policy_routes import router as policy_router
+from saml_routes import router as saml_router
+from marketplace_routes import router as marketplace_router
+from observability_routes import router as observability_router
+from console_auth_routes import router as console_auth_router
+from tenant_admin_routes import router as tenant_admin_router
 
 from context_iam.auth import authenticate_request, is_auth_enforced
 from context_iam.identity import Principal
@@ -67,6 +74,13 @@ app.include_router(tenant_router)
 app.include_router(approval_router)
 app.include_router(audit_router)
 app.include_router(finops_router)
+app.include_router(policy_router)
+app.include_router(saml_router)
+app.include_router(eval_router)
+app.include_router(marketplace_router)
+app.include_router(observability_router)
+app.include_router(console_auth_router)
+app.include_router(tenant_admin_router)
 
 
 class RouteRequest(BaseModel):
@@ -202,11 +216,18 @@ def healthz() -> dict[str, str]:
     return {"status": "ok"}
 
 
+@app.get("/residency/status")
+def residency_status() -> dict[str, Any]:
+    from context_skills.residency import residency_status as _status
+
+    return _status()
+
+
 @app.get("/skills")
 def get_skills(
     request: Request,
     _: Principal = Depends(require_operation("skills:read")),
-) -> list[dict[str, str]]:
+) -> list[dict[str, Any]]:
     skills = list_skills(_repo_root(request))
     return get_tenant_store().filter_skills(_tenant_id(request) or "default", skills)
 
@@ -351,6 +372,19 @@ def api_budget_context(
         correlation_id=cid,
         tenant_id=_tenant_id(request),
     )
+    try:
+        from context_finops.alerts import get_budget_alert_store
+
+        metrics = result.metrics.to_dict()
+        get_budget_alert_store().maybe_alert(
+            _tenant_id(request) or "default",
+            tokens_used=int(metrics.get("tokens_after", payload.token_budget)),
+            token_budget=payload.token_budget,
+            operation="budget_context",
+            correlation_id=cid,
+        )
+    except ImportError:
+        pass
     return _primitive_response(result, cid)
 
 
@@ -444,6 +478,9 @@ def get_usage(
 
 @app.on_event("startup")
 def _configure_runtime() -> None:
+    from context_skills.residency import validate_residency_config
+
+    validate_residency_config()
     app.state.repo_root = find_repo_root()
     init_telemetry(os.environ.get("OTEL_SERVICE_NAME", "context-skills-api"))
     if os.environ.get("CONTEXT_SKILLS_CONSOLE", "").lower() in {"1", "true", "enabled"}:

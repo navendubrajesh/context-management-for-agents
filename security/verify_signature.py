@@ -2,32 +2,10 @@
 
 from __future__ import annotations
 
-import hashlib
-import json
 import sys
 from pathlib import Path
 
-
-def sha256_file(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        for chunk in iter(lambda: handle.read(65536), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
-
-
-def verify_artifact(artifact: Path, signature_path: Path | None = None) -> bool:
-    if not artifact.is_file():
-        return False
-    sig = signature_path or Path(str(artifact) + ".sha256")
-    if sig.is_file():
-        expected = sig.read_text(encoding="utf-8").strip().split()[0]
-        return sha256_file(artifact) == expected
-    bundle = Path(str(artifact) + ".sigstore.json")
-    if bundle.is_file():
-        data = json.loads(bundle.read_text(encoding="utf-8"))
-        return bool(data.get("Bundle") or data.get("signature"))
-    return False
+from security.signing import sha256_file, verify_artifact
 
 
 def main() -> int:
@@ -43,3 +21,6 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+
+__all__ = ["sha256_file", "verify_artifact", "main"]

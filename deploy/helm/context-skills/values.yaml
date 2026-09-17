@@ -1,24 +1,86 @@
 image:
   repository: context-skills/api
   tag: "3.0.0"
+  pullPolicy: IfNotPresent
+
 replicaCount: 2
+
 auth:
   mode: disabled
+
 region: us-east-1
+deploymentMode: standard
+requireRegion: false
+
+service:
+  type: ClusterIP
+  port: 8080
+
 autoscaling:
   enabled: true
   minReplicas: 2
   maxReplicas: 10
   targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+  behavior:
+    scaleDownStabilizationSeconds: 300
+
 ingress:
   enabled: true
+  className: nginx
   host: skills.local
   tls: true
+  annotations: {}
+
 opa:
   enabled: true
-  url: http://opa:8181
+  sidecar: true
+  image:
+    repository: openpolicyagent/opa
+    tag: "0.68.0"
+  url: http://127.0.0.1:8181
+
 console:
   enabled: true
+
+database:
+  url: ""
+
+saml:
+  entityId: ""
+  metadataUrl: ""
+  acsUrl: ""
+
+otel:
+  enabled: false
+  endpoint: ""
+  sidecar: false
+  collectorImage: otel/opentelemetry-collector:0.103.0
+
+oidc:
+  issuer: ""
+  audience: context-skills-api
+
 probes:
   liveness: /healthz
   readiness: /healthz
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+opaResources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 128Mi
+
+serviceAccount:
+  create: true
+  name: ""

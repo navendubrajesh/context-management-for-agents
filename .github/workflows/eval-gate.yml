@@ -1,0 +1,67 @@
+name: Eval Gate
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  eval-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install packages
+        run: |
+          pip install -e control-plane/iam -e control-plane/tenancy -e control-plane/policy
+          pip install -e control-plane/audit -e control-plane/finops -e runtime/core
+          pip install -e runtime/api -e runtime/sdk-python
+          pip install pytest httpx fastapi uvicorn pyjwt[crypto]
+
+      - name: Claim drift check (CM-406)
+        run: python researcher/scripts/check_claim_drift.py --strict --report drift-report.json
+
+      - name: Eval gate via API (CM-404)
+        run: |
+          uvicorn app:app --app-dir runtime/api --host 127.0.0.1 --port 8080 &
+          sleep 3
+          python - <<'PY'
+          import httpx, sys, jwt, datetime
+          token = jwt.encode({
+              "sub": "ci", "iss": "https://mock-idp.local", "aud": "context-skills-api",
+              "roles": "operator", "tenant_id": "tenant-a",
+              "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1),
+          }, "dev-secret-at-least-32-characters-long", algorithm="HS256")
+          headers = {"Authorization": f"Bearer {token}"}
+          payload = {
+              "checks": [
+                  {"type": "benchmark_threshold", "technique": "Combined Pipeline", "min_savings_pct": 90},
+                  {"type": "skill_structure", "skill": "evaluation"},
+              ],
+              "use_judge": True,
+              "rubric": {"criteria": "concise factual", "max_score": 10},
+              "candidate_output": "Concise evaluation guidance.",
+              "context": "evaluation guidance factual",
+          }
+          r = httpx.post("http://127.0.0.1:8080/eval/run", json=payload, headers=headers, timeout=30)
+          r.raise_for_status()
+          data = r.json()
+          print(data)
+          if data.get("status") != "pass":
+              sys.exit(1)
+          PY
+        env:
+          CONTEXT_SKILLS_AUTH_MODE: enforced
+          CONTEXT_SKILLS_OIDC_HMAC_SECRET: dev-secret-at-least-32-characters-long
+          CONTEXT_SKILLS_OIDC_ISSUER: https://mock-idp.local
+          CONTEXT_SKILLS_OIDC_AUDIENCE: context-skills-api
+
+      - name: Upload drift report
+        uses: actions/upload-artifact@v4
+        with:
+          name: drift-report
+          path: drift-report.json

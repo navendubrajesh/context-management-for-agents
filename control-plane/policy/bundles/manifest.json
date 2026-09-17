@@ -1,0 +1,7 @@
+{
+  "name": "contextskills",
+  "version": "3.0.0",
+  "description": "Context Skills OPA policy bundle",
+  "rego_files": ["contextskills.rego"],
+  "updated": "2026-09-17"
+}

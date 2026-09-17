@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<saml2:Assertion xmlns:saml2="urn:oasis:names:tc:SAML:2.0:assertion"
+  ID="_test123" IssueInstant="2026-01-01T00:00:00Z" Version="2.0">
+  <saml2:Subject>
+    <saml2:NameID Format="urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress">saml-user@example.com</saml2:NameID>
+  </saml2:Subject>
+  <saml2:Conditions NotOnOrAfter="2099-12-31T23:59:59Z">
+    <saml2:AudienceRestriction>
+      <saml2:Audience>https://context-skills.example.com</saml2:Audience>
+    </saml2:AudienceRestriction>
+  </saml2:Conditions>
+  <saml2:AttributeStatement>
+    <saml2:Attribute Name="roles">
+      <saml2:AttributeValue>viewer</saml2:AttributeValue>
+    </saml2:Attribute>
+    <saml2:Attribute Name="tenant_id">
+      <saml2:AttributeValue>tenant-a</saml2:AttributeValue>
+    </saml2:Attribute>
+  </saml2:AttributeStatement>
+</saml2:Assertion>

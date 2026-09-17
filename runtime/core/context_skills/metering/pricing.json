@@ -1,6 +1,11 @@
 {
-  "_comment": "Operator-editable placeholder rates — NOT verified market prices. est_cost is illustrative only.",
+  "_comment": "Operator-editable production rates — NOT verified market prices. Override via CONTEXT_SKILLS_PRICING_PATH.",
   "default_model": "gpt-4o-mini",
+  "default_tier": "standard",
+  "tiers": {
+    "standard": {"default_model": "gpt-4o-mini"},
+    "enterprise": {"default_model": "gpt-4o", "discount_pct": 5}
+  },
   "models": {
     "gpt-4o-mini": {
       "input_per_1k_tokens_usd": 0.00015,

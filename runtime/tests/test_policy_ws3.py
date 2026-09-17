@@ -57,3 +57,16 @@ def test_publish_requires_approval(client: TestClient) -> None:
     decided = client.post(f"/approvals/{approval_id}/decide", headers=admin, json={"approve": True})
     assert decided.status_code == 200
     assert decided.json()["status"] == "approved"
+
+
+def test_policy_allows_same_skill_for_other_tenants(client: TestClient) -> None:
+    # default tenant has full catalog; policy denial is tenant-c specific
+    headers = {"Authorization": f"Bearer {_token('v', 'viewer', 'default')}"}
+    assert client.get("/skills/advanced-evaluation", headers=headers).status_code == 200
+
+
+def test_policy_denied_skill_returns_403_not_404(client: TestClient) -> None:
+    headers = {"Authorization": f"Bearer {_token('v', 'viewer', 'tenant-c')}"}
+    response = client.get("/skills/advanced-evaluation", headers=headers)
+    assert response.status_code == 403
+    assert response.status_code != 404
